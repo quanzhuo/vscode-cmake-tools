@@ -75,6 +75,32 @@ export enum ConsoleTypes {
     newExternalWindow = 'newExternalWindow'
 }
 
+export enum DebuggerType {
+    cppdbg = 'cppdbg',
+    cppvsdbg = 'cppvsdbg',
+    lldb = 'lldb',
+    ndgdb = 'gdb',
+    ndlldb = 'lldb-mi'
+}
+
+export class DebuggerPickItem implements vscode.QuickPickItem {
+    constructor(
+        public readonly label: string,
+        public readonly description: string,
+        public readonly type: DebuggerType
+    ) {}
+}
+
+export function getDebuggerItems(): DebuggerPickItem[] {
+    return [
+        new DebuggerPickItem('cppdbg', 'debug using cpp debug extension', DebuggerType.cppdbg),
+        new DebuggerPickItem('cppvsdbg', 'debug using cpp debug extension', DebuggerType.cppvsdbg),
+        new DebuggerPickItem('lldb', 'debug using code lldb extension', DebuggerType.lldb),
+        new DebuggerPickItem('gdb', 'debug using native debug extension', DebuggerType.ndgdb),
+        new DebuggerPickItem('lldb-mi', 'debug using native debug extension', DebuggerType.ndlldb)
+    ];
+}
+
 async function createGDBDebugConfiguration(debuggerPath: string, target: ExecutableTarget): Promise<VSCodeDebugConfiguration> {
     if (!await checkDebugger(debuggerPath)) {
         debuggerPath = 'gdb';

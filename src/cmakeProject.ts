@@ -149,6 +149,7 @@ export class CMakeProject {
     public readonly workflowController: WorkflowDriver;
     public kitsController!: KitsController;
     public presetsController!: PresetsController;
+    public debugger: debuggerModule.DebuggerType = debuggerModule.DebuggerType.cppdbg;
 
     /**
      * Construct a new instance. The instance isn't ready, and must be initalized.
@@ -2473,6 +2474,23 @@ export class CMakeProject {
     }
 
     /**
+     * Implementation of `cmake.setDebugger`
+     */
+    async setDebugger(_name?: string): Promise<void> {
+        return vscode.window.showQuickPick(debuggerModule.getDebuggerItems(), {
+            canPickMany: false,
+            matchOnDescription: true,
+            matchOnDetail: true,
+            placeHolder: localize('selectDebugger', 'Select Debugger'),
+            title: localize('selectDebugger', 'Select Debugger')
+        }).then(async result => {
+            if (result) {
+                this.debugger = result.type;
+            }
+        });
+    }
+
+    /**
      * Implementation of `cmake.selectLaunchTarget`
      */
     async selectLaunchTarget(name?: string): Promise<string | null> {
@@ -2810,6 +2828,19 @@ export class CMakeProject {
         }
 
         let debugConfig;
+        switch (this.debugger) {
+            case debuggerModule.DebuggerType.cppdbg:
+                break;
+            case debuggerModule.DebuggerType.cppvsdbg:
+                break;
+            case debuggerModule.DebuggerType.lldb:
+                break;
+            case debuggerModule.DebuggerType.ndgdb:
+                break;
+            case debuggerModule.DebuggerType.ndlldb:
+                break;
+            default:
+        }
         try {
             const cache = await CMakeCache.fromPath(drv.cachePath);
             debugConfig = await debuggerModule.getDebugConfigurationFromCache(cache, targetExecutable, process.platform,

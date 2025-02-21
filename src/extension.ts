@@ -95,7 +95,7 @@ interface ExtensionActiveCommandsInfo {
  */
 export class ExtensionManager implements vscode.Disposable {
     constructor(public readonly extensionContext: vscode.ExtensionContext) {
-        telemetry.activate(extensionContext);
+        // telemetry.activate(extensionContext);
         this.api = new CMakeToolsApiImpl(this);
     }
 
@@ -1702,6 +1702,10 @@ export class ExtensionManager implements vscode.Disposable {
         return this.runCMakeCommand(cmakeProject => cmakeProject.selectLaunchTarget(name), folder, undefined, undefined, sourceDir);
     }
 
+    setDebugger(folder?: vscode.WorkspaceFolder, name?: string) {
+        return this.runCMakeCommand(cmakeProject => cmakeProject.setDebugger(name), folder);
+    }
+
     async resetState(folder?: vscode.WorkspaceFolder) {
         telemetry.logEvent("resetExtension");
         if (folder) {
@@ -1714,7 +1718,7 @@ export class ExtensionManager implements vscode.Disposable {
     }
 
     openSettings() {
-        void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ms-vscode.cmake-tools');
+        void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:KylinIdeTeam.kylin-cmake-tools');
     }
 
     async viewLog() {
@@ -2215,6 +2219,7 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         'debugTargetAll',
         'launchTarget',
         'launchTargetAll',
+        'setDebugger',
         'selectLaunchTarget',
         'setDefaultTarget',
         'resetState',
