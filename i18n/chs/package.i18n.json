@@ -69,6 +69,7 @@
 	"cmake-tools.command.cmake.debugTargetAll.title": "调试所有项目",
 	"cmake-tools.command.cmake.launchTarget.title": "运行但不调试",
 	"cmake-tools.command.cmake.launchTargetAll.title": "运行所有项目但不调试",
+	"cmake-tools.command.cmake.selectDebugger.title": "选择用于调试的扩展", 
 	"cmake-tools.command.cmake.selectLaunchTarget.title": "设置启动/调试目标",
 	"cmake-tools.command.cmake.stop.title": "取消生成",
 	"cmake-tools.command.cmake.stopAll.title": "取消所有项目的生成",

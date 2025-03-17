@@ -1,8 +1,20 @@
-# CMake Tools
+# CMake Tools Fork
 
-[CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) provides the native developer a full-featured, convenient, and powerful workflow for CMake-based projects in Visual Studio Code.
+This extension is a fork of `ms-vscode.cmake-tools`. It conflicts with the original extension, So be sure to disable or uninstall the original extension before installing this one. This fork aims to make CMake Tools work better with the clangd language server and support other debugging extensions.
+
+## Changes
+
+- Removed coupling with the Microsoft-maintained C/C++ extension
+- Debug functionality in the project status view now supports multiple extensions, currently supported: `C/C++ Debug`, `Kylin Native Debug`, `CodeLLDB`
+- Removed dependency on the `twxs.cmake` extension, now relies on the `CMake IntelliSense` extension
+- Always export the compile database even when using CMake presets
+- Disabled telemetry
+
+[CMake Tools](https://marketplace.visualstudio.com/items?itemName=KylinIdeTeam.kylin-cmake-tools) provides the native developer a full-featured, convenient, and powerful workflow for CMake-based projects in Visual Studio Code.
 
 ## Important doc links
+
+The following documentation is provided by Microsoft.
 
 - [CMake Tools quick start](https://code.visualstudio.com/docs/cpp/CMake-linux)
 - [Configure and build a project with CMake Presets](docs/cmake-presets.md)
@@ -19,20 +31,4 @@
 ## Issues? Questions? Feature requests?
 
 **PLEASE**, if you experience any problems, have any questions, or have an idea
-for a new feature, create an issue on [the GitHub page](https://github.com/microsoft/vscode-cmake-tools)!
-
-This extension itself *does not* provide language support for the CMake scripting language.
-For that we bundle [this extension](https://marketplace.visualstudio.com/items?itemName=twxs.cmake) which provides the support.
-A closed-source extension that provides even better support can also be installed: [CMake Language Support](https://marketplace.visualstudio.com/items?itemName=josetr.cmake-language-support-vscode)
-
-### Microsoft Open Source Code of Conduct
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact opencode@microsoft.com with any additional questions or comments.
-
-### Data/Telemetry
-
-This extension collects usage data and sends it to Microsoft to help improve our products and services. Collection of telemetry is controlled via the same setting provided by Visual Studio Code: `"telemetry.enableTelemetry"`. Read our [privacy statement](https://privacy.microsoft.com/en-us/privacystatement) to learn more.
-
-### Credits
-
-This project was started by [@vector-of-bool](https://github.com/vector-of-bool) and is now currently maintained by Microsoft.
+for a new feature, create an issue on [the GitHub page](https://github.com/quanzhuo/vscode-cmake-tools)!
