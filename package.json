@@ -2426,6 +2426,248 @@
           },
           "scope": "resource"
         },
+        "cmake.nativeDebugConfig": {
+            "type": "object",
+            "description": "Additional launch configuration for KylinIdeTeam.kylin-debug extension",
+            "properties": {
+                "arguments": {
+                    "type": "string",
+                    "description": "Arguments to append after the executable. You can also use pipes."
+                },
+                "gdbpath": {
+                    "type": "string",
+                    "description": "Path to the gdb executable or the command if in PATH"
+                },
+                "env": {
+                    "type": "object",
+                    "description": "Environment variables to set for the debug session",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "debugger_args": {
+                    "type": "array",
+                    "description": "Additional arguments to pass to GDB",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pathSubstitutions": {
+                    "type": "object",
+                    "description": "Help GDB find your source using path substitutions (GDB `substitute-path)` variable",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "valuesFormating": {
+                    "type": "string",
+                    "description": "Set the way of showing variable values. 'disabled' - show value as is, 'parseText' - parse debuggers output text into structure, 'prettyPrinters' - enable debuggers custom pretty-printers if there are any",
+                    "default": "parseText",
+                    "enum": [
+                        "disabled",
+                        "parseText",
+                        "prettyPrinters"
+                    ]
+                },
+                "printCalls": {
+                    "type": "boolean",
+                    "description": "Prints all GDB calls to the console",
+                    "default": false
+                },
+                "showDevDebugOutput": {
+                    "type": "boolean",
+                    "description": "Prints all GDB responses to the console"
+                },
+                "autorun": {
+                    "type": "array",
+                    "description": "GDB commands to run when starting to debug",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "stopAtEntry": {
+                    "type": "boolean",
+                    "description": "Whether debugger should stop at application entry point",
+                    "default": false
+                }
+            }
+        },
+        "cmake.codeLLDBDebugConfig": {
+            "type": "object",
+            "description": "Additional launch configuration for vadimcn.vscode-lldb",
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "description": "Program arguments.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "cwd": {
+                    "type": "string",
+                    "description": "Working directory for the launched program."
+                },
+                "env": {
+                    "type": "object",
+                    "description": "Environment variables to set for the debug session",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "envFile": {
+                    "type": "string",
+                    "description": "Path to a file containing environment variable definitions."
+                },
+                "stdio": {
+                    "type": [
+                        "string",
+                        "null",
+                        "string",
+                        "object"
+                    ],
+                    "description": "Destination for stdio streams: null = send to debugger console or a terminal, \"<path>\" = attach to a file/tty/fifo.",
+                    "default": null
+                },
+                "terminal": {
+                    "type": "string",
+                    "description": "Terminal to launch for the debug session.",
+                    "default": "integrated",
+                    "enum": [
+                        "integrated",
+                        "external",
+                        "console"
+                    ],
+                    "enumDescriptions": [
+                        "Use integrated terminal in VSCode.",
+                        "Use external terminal window.",
+                        "Use VScode Debug Console for stdout and stderr. Stdin will be unavailable."
+                    ]
+                },
+                "console": {
+                    "description": "Terminal type to use. (This setting is a compatibility alias of 'terminal'.)",
+                    "type": "string",
+                    "enum": [
+                        "integratedTerminal",
+                        "externalTerminal",
+                        "internalConsole"
+                    ],
+                    "enumDescriptions": [
+                        "Use integrated terminal in VSCode.",
+                        "Use external terminal window.",
+                        "Use VScode Debug Console for stdout and stderr. Stdin will be unavailable."
+                    ]
+                },
+                "stopOnEntry": {
+                    "description": "Automatically stop debuggee after launch.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "initCommands": {
+                    "description": "Initialization commands executed upon debugger startup.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "targetCreateCommands": {
+                    "description": "Commands that create the debug target.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "preRunCommands": {
+                    "description": "Commands executed just before the program is launched.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "processCreateCommands": {
+                    "description": "Commands that create the debuggee process.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "postRunCommands": {
+                    "description": "Commands executed just after the program has been launched.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "preTerminateCommands": {
+                    "description": "Commands executed just before the debuggee is terminated or disconnected from.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "exitCommands": {
+                    "description": "Commands executed at the end of debugging session.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "expressions": {
+                    "description": "The default evaluator type used for expressions.",
+                    "type": "string",
+                    "enum": [
+                        "simple",
+                        "python",
+                        "native"
+                    ]
+                },
+                "sourceMap": {
+                    "description": "Source path remapping between the build machine and the local machine.  Each item is a pair of remote and local path prefixes.",
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "default": {}
+                },
+                "relativePathBase": {
+                    "description": "Base directory used for resolution of relative source paths.  Defaults to \"${workspaceFolder}\".",
+                    "type": "string"
+                },
+                "sourceLanguages": {
+                    "description": "A list of source languages to enable language-specific features for.",
+                    "type": "array",
+                    "default": []
+                },
+                "reverseDebugging": {
+                    "description": "Enable reverse debugging (Requires reverse execution support in the debug server, see User's Manual for details).",
+                    "type": "boolean",
+                    "default": false
+                },
+                "breakpointMode": {
+                    "description": "Specifies how source breakpoints should be set.",
+                    "type": "string",
+                    "enum": [
+                        "path",
+                        "file"
+                    ],
+                    "enumDescriptions": [
+                        "Resolve locations using full source file path.",
+                        "Resolve locations using file name only."
+                    ]
+                }
+            }
+        },
         "cmake.defaultVariants": {
           "type": "object",
           "$schema": "cmake-tools-schema://schemas/variants-schema.json",
