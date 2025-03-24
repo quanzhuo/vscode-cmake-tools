@@ -2430,6 +2430,10 @@
             "type": "object",
             "description": "Additional launch configuration for KylinIdeTeam.kylin-debug extension",
             "properties": {
+                "cwd": {
+                    "type": "string",
+                    "description": "Working directory for the launched program."
+                },
                 "arguments": {
                     "type": "string",
                     "description": "Arguments to append after the executable. You can also use pipes."
