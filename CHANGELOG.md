@@ -1,5 +1,16 @@
 # What's New?
 
+## 0.0.2
+
+Features:
+
+- Native Debug(KylinIdeTeam.kylin-debug), Codelldb 支持配置额外的调试参数
+
+Bugfixes:
+
+- 修复调试配置当中环境变量展开失败的问题
+
+
 ## 0.0.1
 
 - Based on tag v0.19.52

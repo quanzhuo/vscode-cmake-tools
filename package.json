@@ -2,7 +2,7 @@
   "name": "kylin-cmake-tools",
   "displayName": "CMake Tools (Fork)",
   "description": "Fork of CMake Tools, Extended CMake support in VSCode",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "KylinIdeTeam",
   "repository": {
     "type": "git",
