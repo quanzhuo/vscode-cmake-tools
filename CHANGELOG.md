@@ -1,5 +1,15 @@
 # What's New?
 
+## 0.0.4
+
+Improvements:
+
+- 针对 win32-x64, linux-x64, darwin-x64, linux-arm64 平台，内置 Ninja 二进制文件，在这些平台上，始终使用 `Ninja` 生成器
+
+Bug fixes:
+
+- 修复 CMakeProject 中的环境变量扩展逻辑，确保正确合并 env 和 configureEnv: https://github.com/microsoft/vscode-cmake-tools/issues/4359
+
 ## 0.0.3
 
 Improvements:
