@@ -728,9 +728,15 @@ export abstract class CMakeDriver implements vscode.Disposable {
         log.debug(localize('cmakedriver.kit.set.to', 'CMakeDriver Kit set to {0}', kit.name));
         this._kitEnvironmentVariables = await effectiveKitEnvironment(kit, this.expansionOptions);
 
-        // Place a kit preferred generator at the front of the list
-        if (kit.preferredGenerator) {
-            preferredGenerators.unshift(kit.preferredGenerator);
+        // From version 0.0.4, kylin-cmake-tools has ninja binary included in the extension for the following platform
+        const platform = `${process.platform}-${process.arch}`;
+        if (['win32-x64', 'linux-x64', 'darwin-x64', 'linux-arm64'].includes(platform)) {
+            preferredGenerators.unshift({ name: "Ninja" });
+        } else {
+            // Place a kit preferred generator at the front of the list
+            if (kit.preferredGenerator) {
+                preferredGenerators.unshift(kit.preferredGenerator);
+            }
         }
 
         // If no preferred generator is defined by the current kit or the user settings,
@@ -955,6 +961,16 @@ export abstract class CMakeDriver implements vscode.Disposable {
     }
 
     public async testHaveCommand(program: string, args: string[] = ['--version']): Promise<boolean> {
+        // ninja(win32-x64, darwin-x64, linux-x64, linux-arm64) is included in cmake-tools since version 0.0.4
+        if (program === 'ninja') {
+            const supportedPlatforms = ['win32-x64', 'darwin-x64', 'linux-x64', 'linux-arm64'];
+            const currentPlatform = `${process.platform}-${process.arch}`;
+            if (supportedPlatforms.includes(currentPlatform)) {
+                log.trace(`Ninja is bundled with cmake-tools for platform ${currentPlatform}`);
+                return true;
+            }
+        }
+
         const child = this.executeCommand(program, args, undefined, { silent: true });
         try {
             const result = await child.result;
