@@ -28,3 +28,6 @@ tslint.json
 webpack.config.js
 yarn.lock
 res/ninja/download-ninja
+assets/
+dist/languageServices/
+syntaxes/

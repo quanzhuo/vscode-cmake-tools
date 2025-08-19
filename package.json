@@ -129,18 +129,6 @@
             "aliases": ["CMake Cache"]
         }
     ],
-    "grammars": [
-        {
-            "language": "cmake",
-            "scopeName": "source.cmake",
-            "path": "./syntaxes/CMake.tmLanguage.json"
-        },
-        {
-            "language": "cmake-cache",
-            "scopeName": "source.cmakecache",
-            "path": "./syntaxes/CMakeCache.tmLanguage.json"
-        }
-    ],
     "commands": [
       {
         "command": "cmake.openCMakePresets",
