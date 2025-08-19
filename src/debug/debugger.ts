@@ -291,3 +291,120 @@ export async function checkDebugger(debuggerPath: string): Promise<boolean> {
     const res = await proc.execute(debuggerPath, ['--version'], null, { shell: true }).result;
     return res.retc === 0;
 }
+
+export enum DebuggerType {
+    cppdbg = 'cppdbg',
+    lldb = 'lldb',
+    gdb = 'gdb',
+}
+
+interface GDBDebugConfiguration extends vscode.DebugConfiguration {
+    target: string;
+    cwd: string;
+    arguments?: string;
+    gdbpath?: string;
+    env?: proc.DebuggerEnvironmentVariable[];
+}
+
+interface LLDBDebugConfiguration extends vscode.DebugConfiguration {
+    program: string;
+    args: string | string[];
+    cwd?: string;
+    env?: proc.DebuggerEnvironmentVariable[];
+}
+
+export class DebuggerPickItem implements vscode.QuickPickItem {
+    constructor(
+        public readonly label: string,
+        public readonly description: string,
+        public readonly type: DebuggerType
+    ) {}
+}
+
+export function getDebuggerItems(): DebuggerPickItem[] {
+    return [
+        new DebuggerPickItem('cppdbg', 'Debug with extension [KylinIdeTeam.cppdebug]', DebuggerType.cppdbg),
+        new DebuggerPickItem('gdb', 'Debug with extension [KylinIdeTeam.kylin-debug]', DebuggerType.gdb),
+        new DebuggerPickItem('lldb', 'Debug with extension [vadimcn.vscode-lldb]', DebuggerType.lldb)
+    ];
+}
+
+export function getDebuggerExtId(type: DebuggerType): string {
+    if (type === DebuggerType.cppdbg) {
+        return 'KylinIdeTeam.cppdebug';
+    } else if (type === DebuggerType.gdb) {
+        return 'KylinIdeTeam.kylin-debug';
+    } else if (type === DebuggerType.lldb) {
+        return 'vadimcn.vscode-lldb';
+    } else {
+        return '';
+    }
+}
+
+export async function getDebugConfigurationFromCacheK(cache: CMakeCache, target: ExecutableTarget, platform: string, debuggerType: DebuggerType, modeOverride?: MIModes, debuggerPathOverride?: string): Promise<VSCodeDebugConfiguration | GDBDebugConfiguration | LLDBDebugConfiguration | null> {
+    if (debuggerType === DebuggerType.cppdbg && (platform === 'linux' || platform === 'darwin')) {
+        return getDebugConfigurationFromCache(cache, target, platform, modeOverride, debuggerPathOverride);
+    } else if (debuggerType === DebuggerType.gdb) {
+        if (debuggerPathOverride) {
+            return createGDBDebugConfigurationK(debuggerPathOverride || 'gdb', target);
+        }
+        const compilerPath = searchForCompilerPathInCache(cache);
+        if (compilerPath === null) {
+            throw Error(localize('no.compiler.found.in.cache', 'No compiler found in cache file.'));  // MSVC should be already found by CMAKE_LINKER
+        }
+
+        const clangCompilerRegex = /(clang[\+]{0,2})+(?!-cl)/gi;
+        const miDebuggerPath = compilerPath.replace(clangCompilerRegex, 'gdb');
+        if (modeOverride !== MIModes.lldb && (miDebuggerPath.search(new RegExp('gdb')) !== -1) && await checkDebugger(miDebuggerPath)) {
+            return createGDBDebugConfigurationK(miDebuggerPath, target);
+        }
+        const gccCompilerRegex = /([cg]\+\+|g?cc)(?=[^\/\\]*$)/gi;
+        let gdbDebuggerPath = compilerPath.replace(gccCompilerRegex, 'gdb');
+        if (path.isAbsolute(gdbDebuggerPath) && !await fs.exists(gdbDebuggerPath)) {
+            gdbDebuggerPath = path.join(path.dirname(compilerPath), 'gdb');
+            if (process.platform === 'win32') {
+                gdbDebuggerPath = gdbDebuggerPath + '.exe';
+            }
+        }
+        if (gdbDebuggerPath.search(new RegExp('gdb')) !== -1) {
+            return createGDBDebugConfigurationK(gdbDebuggerPath, target);
+        }
+    } else if (debuggerType === DebuggerType.lldb) {
+        return createLLDBDebugConfigurationK(debuggerPathOverride || 'lldb', target);
+    }
+    return null;
+}
+
+async function createGDBDebugConfigurationK(debuggerPath: string, target: ExecutableTarget): Promise<GDBDebugConfiguration> {
+    if (!await checkDebugger(debuggerPath)) {
+        debuggerPath = 'gdb';
+        if (!await checkDebugger(debuggerPath)) {
+            throw new Error(localize('gdb.not.found', 'Unable to find GDB in default search path and {0}.', debuggerPath));
+        }
+    }
+
+    return {
+        type: 'gdb',
+        name: `Debug ${target.name}`,
+        request: 'launch',
+        cwd: '${workspaceRoot}',
+        target: target.path,
+        arguments: "",
+        gdbpath: debuggerPath
+    };
+}
+
+async function createLLDBDebugConfigurationK(_debuggerPath: string, target: ExecutableTarget): Promise<LLDBDebugConfiguration> {
+    // if (!await checkDebugger(debuggerPath)) {
+    //     throw new Error(localize('gdb.not.found', 'Unable to find GDB in default search path and {0}.', debuggerPath));
+    // }
+
+    return {
+        type: 'lldb',
+        name: `Debug ${target.name}`,
+        request: 'launch',
+        cwd: '${workspaceFolder}',
+        program: target.path,
+        args: []
+    };
+}

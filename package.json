@@ -1,25 +1,27 @@
 {
-  "name": "cmake-tools",
-  "displayName": "CMake Tools",
-  "description": "Extended CMake support in Visual Studio Code",
-  "version": "1.13.0",
-  "publisher": "ms-vscode",
+  "name": "kylin-cmake-tools",
+  "displayName": "CMake Tools (Fork)",
+  "description": "Fork of CMake Tools, Extended CMake support in VSCode",
+  "version": "0.0.1",
+  "publisher": "KylinIdeTeam",
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode-cmake-tools"
+    "url": "https://github.com/quanzhuo/vscode-cmake-tools"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/microsoft/vscode-cmake-tools/issues"
+    "url": "https://github.com/quanzhuo/vscode-cmake-tools/issues"
   },
-  "homepage": "https://github.com/microsoft/vscode-cmake-tools",
+  "homepage": "https://github.com/quanzhuo/vscode-cmake-tools",
   "keywords": [
     "cmake",
-    "tools",
     "build",
-    "c++",
-    "native",
-    "syntaxes"
+    "C",
+    "C++",
+    "KylinIdeDev",
+    "KylinIdeDevCYuYan",
+    "KylinIdeDevCPlusPlus",
+    "KylinIdeDevEdit"
   ],
   "engines": {
     "vscode": "^1.88.0"
@@ -731,6 +733,12 @@
         "title": "%cmake-tools.command.cmake.debugTargetAll.title%",
         "when": "cmake:enableFullFeatureSet",
         "category": "CMake"
+      },
+      {
+        "command": "cmake.projectStatus.setDebugger",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.selectDebugger.title%",
+        "icon": "$(edit)"
       },
       {
         "command": "cmake.projectStatus.setDebugTarget",
@@ -1575,6 +1583,10 @@
           "when": "never"
         },
         {
+          "command": "cmake.projectStatus.setDebugger",
+          "when": "never"
+        },
+        {
           "command": "cmake.projectStatus.setDebugTarget",
           "when": "never"
         },
@@ -1786,6 +1798,11 @@
         {
           "command": "cmake.projectStatus.debugTarget",
           "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'debug'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.projectStatus.setDebugger",
+          "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'debugger'",
           "group": "inline"
         },
         {
@@ -3893,5 +3910,8 @@
     "minimatch": "^3.0.5",
     "**/braces": "^3.0.3"
   },
+  "extensionPack":  [
+    "KylinIdeTeam.cmake-intellisence"
+  ],
   "packageManager": "yarn@1.22.19"
 }
