@@ -309,6 +309,7 @@ export interface NativeDebugConfiguration {
     showDevDebugOutput?: boolean;
     autorun?: string[];
     stopAtEntry?: boolean;
+    cwd?: string;
 }
 
 export interface CodeLLDBDebugConfiguration {

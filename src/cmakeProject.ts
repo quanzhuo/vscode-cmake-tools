@@ -2922,7 +2922,7 @@ export class CMakeProject {
 
         env = EnvironmentUtils.merge([configureEnv, env]);
         if (debugEnv) {
-            const options = {... await this.getExpansionOptions(), envOverride: env, penvOverride: configureEnv };
+            const options = {... await this.getExpansionOptions(), envOverride: configureEnv, penvOverride: configureEnv };
             for (const envKey in debugEnv) {
                 env[envKey] = await expandString(debugEnv[envKey], options);
             }
@@ -3056,9 +3056,22 @@ export class CMakeProject {
 
     private async createTerminal(executable: ExecutableTarget): Promise<vscode.Terminal> {
         // Create terminal options
-        const userConfig = this.workspaceContext.config.debugConfig;
         const drv = await this.getCMakeDriverInstance();
-        const launchEnv = await this.getTargetLaunchEnvironment(drv, userConfig.environment);
+        let userConfig;
+        let launchEnv: Environment;
+        if (this.debugger === debuggerModule.DebuggerType.cppdbg) {
+            userConfig = this.workspaceContext.config.debugConfig;
+            launchEnv = await this.getTargetLaunchEnvironment(drv, userConfig.environment);
+        } else if (this.debugger === debuggerModule.DebuggerType.lldb) {
+            userConfig = this.workspaceContext.config.codeLLDBDebugConfig;
+            launchEnv = await this.getTargetLaunchEnvironmentNC(drv, userConfig.env);
+        } else if (this.debugger === debuggerModule.DebuggerType.gdb) {
+            userConfig = this.workspaceContext.config.nativeDebugConfig;
+            launchEnv = await this.getTargetLaunchEnvironmentNC(drv, userConfig.env);
+        } else {
+            throw new Error(`unKnown debugger type: ${JSON.stringify(this.debugger)}`);
+        }
+
         const options: vscode.TerminalOptions = {
             name: `CMake/Launch - ${executable.name}`,
             env: launchEnv,
