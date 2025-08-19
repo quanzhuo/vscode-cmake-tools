@@ -125,7 +125,7 @@ export class ExtensionManager implements vscode.Disposable {
      * Second-phase async init
      */
     public async init() {
-        if (this.workspaceConfig.enableLanguageServices) {
+        if (false) {
             await this.enableLanguageServices();
             this.workspaceConfig.onChange('enableLanguageServices', async (value) => {
                 if (value) {
