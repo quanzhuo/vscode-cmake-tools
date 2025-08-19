@@ -1,5 +1,13 @@
 # What's New?
 
+## 0.0.3
+
+Improvements:
+
+- 去掉掉 CMake Tools 中的状态栏选项移动通知逻辑
+- 修复状态栏不显示 Debug 按钮的问题
+
+
 ## 0.0.2
 
 Features:
