@@ -1,8 +1,12 @@
 # CMake Tools Fork
 
-This extension is a fork of `ms-vscode.cmake-tools`. It conflicts with the original extension, So be sure to disable or uninstall the original extension before installing this one. This fork aims to make CMake Tools work better with the clangd language server and support other debugging extensions.
+This extension is a fork of `ms-vscode.cmake-tools`. It aims to improve compatibility with the clangd language server and support additional debugging extensions. It is recommended to install the `KylinIdeTeam.kylin-cpp-pack` extension pack, as this CMake extension works seamlessly with the other extensions included in the pack.
 
-## Changes
+Please note that this extension conflicts with the original `ms-vscode.cmake-tools` extension. Be sure to disable or uninstall the original extension before installing this one.
+
+[CMake Tools](https://marketplace.visualstudio.com/items?itemName=KylinIdeTeam.kylin-cmake-tools) provides the native developer a full-featured, convenient, and powerful workflow for CMake-based projects in Visual Studio Code.
+
+## Major Changes and Enhancements
 
 - Removed coupling with the Microsoft-maintained C/C++ extension
 - Debug functionality in the project status view now supports multiple extensions, currently supported: `C/C++ Debug`, `Kylin Native Debug`, `CodeLLDB`
@@ -10,7 +14,14 @@ This extension is a fork of `ms-vscode.cmake-tools`. It conflicts with the origi
 - Always export the compile database even when using CMake presets
 - Disabled telemetry
 
-[CMake Tools](https://marketplace.visualstudio.com/items?itemName=KylinIdeTeam.kylin-cmake-tools) provides the native developer a full-featured, convenient, and powerful workflow for CMake-based projects in Visual Studio Code.
+## Installation
+
+To install this extension, follow these steps:
+1. Open the Extensions view in VS Code (`Ctrl+Shift+X`).
+2. Search for `KylinIdeTeam.kylin-cmake-tools`.
+3. Click `Install`.
+
+Additionally, install the `KylinIdeTeam.kylin-cpp-pack` extension pack for seamless integration with clangd language server.
 
 ## Important doc links
 
