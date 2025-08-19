@@ -10,7 +10,7 @@ import * as os from 'os';
 import * as telemetry from '@cmt/telemetry';
 import * as vscode from 'vscode';
 import * as nls from 'vscode-nls';
-import { CppDebugConfiguration } from '@cmt/debug/debugger';
+import { CodeLLDBDebugConfiguration, CppDebugConfiguration, NativeDebugConfiguration } from '@cmt/debug/debugger';
 import { Environment } from '@cmt/environmentVariables';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
@@ -178,6 +178,8 @@ export interface ExtensionConfigurationSettings {
     parseBuildDiagnostics: boolean;
     enabledOutputParsers: string[];
     debugConfig: CppDebugConfiguration;
+    nativeDebugConfig: NativeDebugConfiguration;
+    codeLLDBDebugConfig: CodeLLDBDebugConfiguration;
     defaultVariants: object;
     ctestArgs: string[];
     ctestDefaultArgs: string[];
@@ -421,6 +423,12 @@ export class ConfigurationReader implements vscode.Disposable {
     get debugConfig(): CppDebugConfiguration {
         return this.configData.debugConfig;
     }
+    get nativeDebugConfig(): NativeDebugConfiguration {
+        return this.configData.nativeDebugConfig;
+    }
+    get codeLLDBDebugConfig(): CodeLLDBDebugConfiguration {
+        return this.configData.codeLLDBDebugConfig;
+    }
     get environment() {
         return this.configData.environment;
     }
@@ -628,6 +636,8 @@ export class ConfigurationReader implements vscode.Disposable {
         parseBuildDiagnostics: new vscode.EventEmitter<boolean>(),
         enabledOutputParsers: new vscode.EventEmitter<string[]>(),
         debugConfig: new vscode.EventEmitter<CppDebugConfiguration>(),
+        nativeDebugConfig: new vscode.EventEmitter<NativeDebugConfiguration>(),
+        codeLLDBDebugConfig: new vscode.EventEmitter<CodeLLDBDebugConfiguration>(),
         defaultVariants: new vscode.EventEmitter<object>(),
         ctestArgs: new vscode.EventEmitter<string[]>(),
         ctestDefaultArgs: new vscode.EventEmitter<string[]>(),

@@ -298,6 +298,43 @@ export enum DebuggerType {
     gdb = 'gdb',
 }
 
+export interface NativeDebugConfiguration {
+    arguments?: string;
+    gdbpath?: string;
+    env?: {[key: string]: string};
+    debugger_args?: string[];
+    pathSubstitutions?: {[key: string]: string};
+    valuesFormating?: string;
+    printCalls?: boolean;
+    showDevDebugOutput?: boolean;
+    autorun?: string[];
+    stopAtEntry?: boolean;
+}
+
+export interface CodeLLDBDebugConfiguration {
+    args?: string[];
+    cwd?: string;
+    env?: {[key: string]: string};
+    envFile?: string;
+    stdio?: string|null|string|object;
+    terminal?: string;
+    console?: string;
+    stopOnEntry?: true;
+    initCommands?: string[];
+    targetCreateCommands?: string[];
+    preRunCommands?: string[];
+    processCreateCommands?: string[];
+    postRunCommands?: string[];
+    preTerminateCommands?: string[];
+    exitCommands?: string[];
+    expressions?: string;
+    sourceMap?: {[key: string]: string};
+    relativePathBase?: string;
+    sourceLanguages?: string[];
+    reverseDebugging?: boolean;
+    breakpointMode?: string;
+}
+
 interface GDBDebugConfiguration extends vscode.DebugConfiguration {
     target: string;
     cwd: string;
