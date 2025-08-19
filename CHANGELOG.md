@@ -1,5 +1,11 @@
 # What's New?
 
+## 0.1.0
+
+Improvements:
+
+- Sync changes from upstream repository, based on commit 732a7164334d591b0cd725946bf0226e44914cd7 (v1.21.36-12-g732a7164)
+
 ## 0.0.4
 
 Improvements:
