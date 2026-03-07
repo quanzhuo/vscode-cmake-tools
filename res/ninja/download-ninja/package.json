@@ -1,0 +1,16 @@
+{
+  "name": "ninja-downloader",
+  "version": "1.0.0",
+  "description": "Download and extract ninja-build releases for multiple platforms.",
+  "main": "download-ninja.js",
+  "scripts": {
+    "download": "node download-ninja.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "unzipper": "^0.10.14",
+    "fs-extra": "^11.2.0",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.2"
+  }
+}
