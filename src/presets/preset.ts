@@ -2139,9 +2139,13 @@ async function getWorkflowPresetInheritsHelper(folder: string, preset: WorkflowP
 export function configureArgs(preset: ConfigurePreset): string[] {
     const result: string[] = [];
 
+    let exportCompileCommandsConfiged: boolean = false;
     // CacheVariables
     if (preset.cacheVariables) {
         util.objectPairs(preset.cacheVariables).forEach(([key, value]) => {
+            if (key === 'CMAKE_EXPORT_COMPILE_COMMANDS') {
+                exportCompileCommandsConfiged = true;
+            }
             // Skip $comment keys as they are only for documentation purposes
             if (key === '$comment') {
                 return;
@@ -2154,6 +2158,9 @@ export function configureArgs(preset: ConfigurePreset): string[] {
         });
     }
 
+    if (!exportCompileCommandsConfiged) {
+        result.push('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON');
+    }
     if (preset.toolchainFile) {
         result.push(`-DCMAKE_TOOLCHAIN_FILE=${preset.toolchainFile}`);
     }

@@ -37,6 +37,8 @@ function createConfig(conf: Partial<ExtensionConfigurationSettings>): Configurat
         parseBuildDiagnostics: true,
         enabledOutputParsers: [],
         debugConfig: {},
+        nativeDebugConfig: {},
+        codeLLDBDebugConfig: {},
         defaultVariants: {},
         ctestArgs: [],
         cpackArgs: [],

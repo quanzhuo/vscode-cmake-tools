@@ -102,6 +102,10 @@ export class ProjectStatus {
             vscode.commands.registerCommand('cmake.projectStatus.debugTarget', async (_node: Node) => {
                 await runCommand('debugTarget');
             }),
+            vscode.commands.registerCommand('cmake.projectStatus.setDebugger', async (_node: Node) => {
+                await runCommand('setDebugger');
+                await this.refresh();
+            }),
             vscode.commands.registerCommand('cmake.projectStatus.setDebugTarget', async (node: Node) => {
                 await runCommand('selectLaunchTarget');
                 await this.refresh(node);
@@ -727,6 +731,7 @@ class WorkflowNode extends Node {
 class DebugNode extends Node {
 
     private target?: DebugTarget;
+    private debugger?: DebuggerNode;
 
     async initialize(): Promise<void> {
         if (!treeDataProvider.cmakeProject) {
@@ -745,15 +750,40 @@ class DebugNode extends Node {
         }
         this.target = new DebugTarget();
         await this.target.initialize();
+
+        this.debugger = new DebuggerNode();
+        await this.debugger.initialize();
     }
 
     getChildren(): Node[] {
         if (!treeDataProvider.cmakeProject) {
             return [];
         }
-        return [this.target!];
+        return [this.debugger!, this.target!];
     }
 
+}
+
+class DebuggerNode extends Node {
+    async initialize(): Promise<void> {
+        if (!treeDataProvider.cmakeProject) {
+            return;
+        }
+        // this.label = treeDataProvider.cmakeProject.activeKit?.name || noKitSelected;
+        this.label = treeDataProvider.cmakeProject.debugger;
+        this.tooltip = localize("debugger.change", "Select Debugger Extension");
+        this.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        this.contextValue = 'debugger';
+    }
+
+    getTreeItem(): vscode.TreeItem {
+        if (!treeDataProvider.cmakeProject) {
+            return this;
+        }
+        // this.label = treeDataProvider.cmakeProject.activeKit?.name || noKitSelected;
+        this.label = treeDataProvider.cmakeProject.debugger;
+        return this;
+    }
 }
 
 class LaunchNode extends Node {
