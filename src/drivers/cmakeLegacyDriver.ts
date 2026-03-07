@@ -20,6 +20,7 @@ import { BuildPreset, ConfigurePreset, getValue, TestPreset, PackagePreset, Work
 import { CodeModelContent } from '@cmt/drivers/codeModel';
 import { ConfigureTrigger } from '@cmt/cmakeProject';
 import { onConfigureSettingsChange } from '@cmt/ui/util';
+import { extensionManager } from '@cmt/extension';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
@@ -101,6 +102,10 @@ export class CMakeLegacyDriver extends CMakeDriver {
             if (generator.name) {
                 args.push('-G');
                 args.push(generator.name);
+                if (generator.name === 'Ninja' || generator.name === 'Ninja Multi-Config') {
+                    const platform = `${process.platform}-${process.arch}`;
+                    args.push('-DCMAKE_MAKE_PROGRAM=' + extensionManager?.extensionContext.asAbsolutePath(`res/ninja/${platform}/ninja`));
+                }
             }
             if (generator.toolset) {
                 args.push('-T');

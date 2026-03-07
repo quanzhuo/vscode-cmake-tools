@@ -12,6 +12,7 @@ Please note that this extension conflicts with the original `ms-vscode.cmake-too
 - Debug functionality in the project status view now supports multiple extensions, currently supported: `C/C++ Debug`, `Kylin Native Debug`, `CodeLLDB`
 - Removed dependency on the `twxs.cmake` extension, now relies on the `CMake IntelliSense` extension
 - Always export the compile database even when using CMake presets
+- Bundled Ninja binary for specific platforms (win32-x64, linux-x64, darwin-x64, linux-arm64), and always use `Ninja` generator for these platforms
 - Disabled telemetry
 
 ## Installation

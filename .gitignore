@@ -24,3 +24,7 @@ test.txt
 **/nls.*.json
 **/*.nls.json
 **/*.nls.*.json
+res/ninja/darwin-x64
+res/ninja/win32-x64
+res/ninja/linux-x64
+res/ninja/linux-arm64
