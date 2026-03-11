@@ -1,5 +1,13 @@
 # What's New?
 
+## 0.2.0
+
+Improvements:
+
+- Sync changes from upstream repository, based on tag v1.22.28
+- Update bundled Ninja to version 1.13.2
+- Update Readme, logo, Display name to distinguish from the original CMake Tools extension
+
 ## 0.1.0
 
 Improvements:
