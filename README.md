@@ -1,95 +1,53 @@
-<h1 align=center> <img align=center width=48 src="res/logo-margin-bottom.png" alt="CMake Logo"/> CMake Tools </h1>
+# Kylin CMake Workflow
 
-<p align=center ><i>Enhancing CMake development in VS Code.</i></p>
+Kylin CMake Workflow is a community-maintained CMake extension from `KylinIdeTeam` for Visual Studio Code. It is based on the upstream `ms-vscode.cmake-tools` project, but is distributed as a separate extension with its own maintenance scope, packaging choices, and integration targets. It is not affiliated with or endorsed by Microsoft.
 
-<div align=center>
-    <img alt="VS Code" src="https://img.shields.io/badge/VSCode-7d57c2?style=for-the-badge&logo=visual%20studio%20code&logoColor=white"/>
-    <img alt="CMake" src="https://img.shields.io/badge/CMake-7d57c2?style=for-the-badge&logo=cmake&logoColor=white"/>
-    <img alt="C" src="https://img.shields.io/badge/C-7d57c2?style=for-the-badge&logo=c&logoColor=white"/>
-    <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-7d57c2?style=for-the-badge&logo=c%2B%2B&logoColor=white"/>
-</div>
+This extension is intended for teams that prefer a clangd-first C/C++ workflow and broader debugger support. It is also part of the `KylinIdeTeam.kylin-cpp-pack` extension pack, and installing that extension pack is the recommended setup for the full C/C++ experience. If you install this extension, disable the official `ms-vscode.cmake-tools` extension to avoid command and feature overlap.
 
-<div align=center>
-    <img alt="VS Code Marketplace Downloads" src="https://img.shields.io/visual-studio-marketplace/d/ms-vscode.cmake-tools?style=for-the-badge&color=064f8c&cacheSeconds=3600&link=https%3A%2F%2Fmarketplace.visualstudio.com%2Fitems%3FitemName%3Dms-vscode.cmake-tools">
-    <img alt="VS Code Marketplace Version" src="https://img.shields.io/visual-studio-marketplace/v/ms-vscode.cmake-tools?style=for-the-badge&color=be2128&cacheSeconds=3600&link=https%3A%2F%2Fmarketplace.visualstudio.com%2Fitems%2Fms-vscode.cmake-tools%2Fchangelog">
-    <img alt="Closed Issues" src="https://img.shields.io/github/issues-closed/microsoft/vscode-cmake-tools?style=for-the-badge&color=249847&cacheSeconds=3600&link=https%3A%2F%2Fgithub.com%2Fmicrosoft%2Fvscode-cmake-tools%2Fissues">
-</div>
+## Major Changes and Enhancements
 
-<br/>
-<img style="width: 100%" src="res/graphics/cmake-tools-banner.png" alt="CMake Tools Banner"/>
+- Removed coupling with the Microsoft-maintained C/C++ extension
+- Debug functionality in the project status view now supports multiple extensions, currently supported: `C/C++ Debug`, `Kylin Native Debug`, `CodeLLDB`
+- Removed dependency on the `twxs.cmake` extension, now relies on the `CMake IntelliSense` extension
+- Always export the compile database even when using CMake presets
+- Disabled telemetry
 
-## Introduction
-[CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) provides the native developer a full-featured, convenient, and powerful workflow for CMake-based projects in Visual Studio Code. It simplifies advanced configurations with support for CMake presets and enhances the development experience by supporting rich IntelliSense features, a built-in debugger for CMake scripts, and configurable CMake tasks. Its customizable interface allows for efficient tailored control of projects, while CTest integration ensures straightforward test execution and monitoring.
+## Fork Positioning
 
-<details open>
-<summary>
- Features
-</summary><br/>
+- Extension ID: `KylinIdeTeam.kylin-cmake-tools`
+- Marketplace name: `Kylin CMake Workflow`
+- Primary focus: clangd-oriented workflows, bundled toolchain conveniences, and multi-debugger integration
 
-<p align=center>
-    <img width="49%" src="res/graphics/presets-support-feature.png" alt="Presets Support"/>
-&nbsp;
-    <img width="49%" src="res/graphics/cmake-language-service-feature.png" alt="Built-In CMake Language Services"/>
-</p>
-<p align=center>
-    <img width="49%" src="res/graphics/cmake-debugging-feature.png" alt="CMake Debugging"/>
-&nbsp;
-    <img width="49%" src="res/graphics/status-and-sidebar-feature.png" alt="Project Status"/>
-</p>
-<p align=center>
-    <img width="49%" src="res/graphics/cmake-commands-feature.png" alt="CMake Commands"/>
-&nbsp;
-    <img width="49%" src="res/graphics/project-outline-feature.png" alt="Project Outline"/>
-</p>
-<p align=center>
-    <img width="49%" src="res/graphics/tasks-feature.png" alt="Tasks"/>  
-&nbsp;
-    <img width="49%" src="res/graphics/test-integration-feature.png" alt="Test Integration"/>
-</p>  
+## Installation
 
-</details>
+To install this extension, follow these steps:
+1. Open the Extensions view in VS Code (`Ctrl+Shift+X`).
+2. Search for `KylinIdeTeam.kylin-cmake-tools`.
+3. Click `Install`.
 
-## Setup and Installation
-Ensure CMake is available on your system. A couple of options are:
-- [Download CMake](https://cmake.org/download/).
-- Utilize the CMake that is bundled with a Visual Studio installation.
+Additionally, install the `KylinIdeTeam.kylin-cpp-pack` extension pack for tighter integration with the surrounding C/C++ tooling.
 
-Install the CMake Tools extension from the Extensions pane within VS Code or from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools).
+## Upstream and Support
 
-Ensure that either you've added your CMake executable to your PATH, or you've adjusted the `cmake.cmakePath` setting to point to your CMake executable. 
+This repository tracks and adapts upstream CMake Tools behavior where it makes sense for the Kylin distribution. Bugs, packaging changes, and feature requests for this extension should be reported to the Kylin repository, not to the Microsoft extension team.
 
-## Resources
-- [Docs](docs/README.md) for comprehensive documentation.
-- [Quick Start](https://code.visualstudio.com/docs/cpp/CMake-linux) to get up and running fast.
-- [Github](https://github.com/microsoft/vscode-cmake-tools) for source code, issues, and contributing.
+## Important doc links
 
-## Contributing
-We encourage an open and collaborative development environment and welcome all contributions. Whether you're fixing bugs, proposing new features, or improving our documentation - we invite you to join the CMake Tools community. Please review our [contribution guidelines](CONTRIBUTING.md) and adhere to our [code of conduct](https://opensource.microsoft.com/codeofconduct/).
+Some of the links below point to upstream Microsoft documentation for general CMake and VS Code usage.
 
-You can file issues with us using one of our templates:
+- [CMake Tools quick start](https://code.visualstudio.com/docs/cpp/CMake-linux)
+- [Configure and build a project with CMake Presets](docs/cmake-presets.md)
+- [Configure a project with kits and variants](docs/how-to.md#configure-a-project)
+- [Build a project with kits and variants](docs/how-to.md#build-a-project)
+- [Configure and build a project using tasks](docs/tasks.md)
+- [Debug a project](docs/how-to.md#debug-a-project)
+- [Configure CMake Tools settings](docs/cmake-settings.md)
+- [How to](docs/how-to.md)
+- [FAQ](docs/faq.md)
+- [Read the online documentation](docs/README.md)
+- [Contribute](CONTRIBUTING.md)
 
-[Bug Report](https://github.com/microsoft/vscode-cmake-tools/issues/new?template=bugreport.yml): If you see an error message or encounter an issue while using the CMake Tools extension.
+## Issues? Questions? Feature requests?
 
-[Feature Request](https://github.com/microsoft/vscode-cmake-tools/issues/new?template=featurerequest.yml): If you have a suggestion or need a feature that would enhance development.
-
-[Documentation Request](https://github.com/microsoft/vscode-cmake-tools/issues/new?template=docrequest.yml): Requesting changes or additions to the [CMake Tools documentation](docs/README.md).
-
-##
-
-### Microsoft Open Source Code of Conduct
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact opencode@microsoft.com with any additional questions or comments.
-
-### Data/Telemetry
-
-This extension collects usage data and sends it to Microsoft to help improve our products and services. Collection of telemetry is controlled via the same setting provided by Visual Studio Code: `"telemetry.enableTelemetry"`. Read our [privacy statement](https://privacy.microsoft.com/en-us/privacystatement) to learn more.
-
-### Credits
-
-This project was started by [@vector-of-bool](https://github.com/vector-of-bool) and is now currently maintained by Microsoft.
-
-### Contributors
-
-<a href="https://github.com/microsoft/vscode-cmake-tools/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=microsoft/vscode-cmake-tools" alt="Contributors"/>
-</a>
+**PLEASE**, if you experience any problems, have any questions, or have an idea
+for a new feature, create an issue on [the GitHub page](https://github.com/quanzhuo/vscode-cmake-tools)!

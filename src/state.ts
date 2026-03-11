@@ -134,6 +134,14 @@ export class StateManager {
         await this._update('launchTargetName', t, folderName, isMultiProject);
     }
 
+    getDebugger(folderName: string, isMultiProject: boolean): string | null {
+        return this._get<string>('debuggerName', folderName, isMultiProject) || null;
+    }
+
+    async setDebugger(folderName: string, t: string | null, isMultiProject: boolean) {
+        await this._update('debuggerName', t, folderName, isMultiProject);
+    }
+
     /**
      * The keyword settings for the build variant
      */

@@ -21,6 +21,7 @@
 	"Workflow": "工作流",
 	"workflow.running": "工作流 (运行中)",
 	"Debug": "调试",
+	"debugger.change": "更改调试器扩展",
 	"Launch": "启动",
 	"Folder": "文件夹",
 	"active.folder": "活动文件夹",

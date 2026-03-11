@@ -97,7 +97,7 @@ interface ExtensionActiveCommandsInfo {
  */
 export class ExtensionManager implements vscode.Disposable {
     constructor(public readonly extensionContext: vscode.ExtensionContext) {
-        telemetry.activate(extensionContext);
+        // telemetry.activate(extensionContext);
         this.api = new CMakeToolsApiImpl(this);
         // Wire bookmarks to resolve TargetNodes from the outline using stable IDs
         this.bookmarksProvider.setTargetResolver((id: string) => this.projectOutline.findTargetNodeById(id));
@@ -872,7 +872,7 @@ export class ExtensionManager implements vscode.Disposable {
             }
             if (!this.cppToolsAPI && !util.isTestMode()) {
                 try {
-                    this.cppToolsAPI = await cpt.getCppToolsApi(cpt.Version.latest);
+                    // this.cppToolsAPI = await cpt.getCppToolsApi(cpt.Version.latest);
                 } catch (err) {
                     log.debug(localize('failed.to.get.cpptools.api', 'Failed to get cppTools API'));
                 }
@@ -1862,6 +1862,10 @@ export class ExtensionManager implements vscode.Disposable {
         return this.runCMakeCommand(cmakeProject => cmakeProject.selectLaunchTarget(name), folder, undefined, undefined, sourceDir);
     }
 
+    setDebugger(folder?: vscode.WorkspaceFolder, name?: string) {
+        return this.runCMakeCommand(cmakeProject => cmakeProject.setDebugger(name), folder);
+    }
+
     async resetState(folder?: vscode.WorkspaceFolder) {
         telemetry.logEvent("resetExtension");
         if (folder) {
@@ -1874,7 +1878,7 @@ export class ExtensionManager implements vscode.Disposable {
     }
 
     openSettings() {
-        void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ms-vscode.cmake-tools');
+        void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:KylinIdeTeam.kylin-cmake-tools');
     }
 
     async viewLog() {
@@ -2405,6 +2409,7 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         'debugTargetAll',
         'launchTarget',
         'launchTargetAll',
+        'setDebugger',
         'selectLaunchTarget',
         'setDefaultTarget',
         'resetState',
@@ -2608,22 +2613,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<api.CM
 
                 // Don't show this warning again.
                 await context.globalState.update(key, false);
-            }
-        });
-    }
-
-    if (vscode.workspace.getConfiguration('cmake').get('showOptionsMovedNotification')) {
-        void vscode.window.showInformationMessage(
-            localize('options.moved.notification.body', "Some status bar options in CMake Tools have now moved to the Project Status View in the CMake Tools sidebar. You can customize your view with the 'cmake.options' property in settings."),
-            localize('options.moved.notification.configure.cmake.options', 'Configure CMake Options Visibility'),
-            localize('options.moved.notification.do.not.show', "Do Not Show Again")
-        ).then(async (selection) => {
-            if (selection !== undefined) {
-                if (selection === localize('options.moved.notification.configure.cmake.options', 'Configure CMake Options Visibility')) {
-                    await vscode.commands.executeCommand('workbench.action.openSettings', 'cmake.options');
-                } else if (selection === localize('options.moved.notification.do.not.show', "Do Not Show Again")) {
-                    await vscode.workspace.getConfiguration('cmake').update('showOptionsMovedNotification', false, vscode.ConfigurationTarget.Global);
-                }
             }
         });
     }

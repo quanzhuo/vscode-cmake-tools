@@ -151,6 +151,7 @@ export class CMakeProject {
     public readonly workflowController: WorkflowDriver;
     public kitsController!: KitsController;
     public presetsController!: PresetsController;
+    public debugger: debuggerModule.DebuggerType = debuggerModule.DebuggerType.cppdbg;
 
     /**
      * Construct a new instance. The instance isn't ready, and must be initalized.
@@ -1280,6 +1281,7 @@ export class CMakeProject {
                 }
             });
         });
+        this.debugger = (this.workspaceContext.state.getDebugger(this.folderName, this.isMultiProjectFolder) ?? 'cppdbg') as debuggerModule.DebuggerType;
 
         this.disposables.push(this.onPresetsChanged(() => this.doUseCMakePresetsChange()));
         this.disposables.push(this.onUserPresetsChanged(() => this.doUseCMakePresetsChange()));
@@ -2561,6 +2563,24 @@ export class CMakeProject {
     }
 
     /**
+     * Implementation of `cmake.setDebugger`
+     */
+    async setDebugger(_name?: string): Promise<void> {
+        return vscode.window.showQuickPick(debuggerModule.getDebuggerItems(), {
+            canPickMany: false,
+            matchOnDescription: true,
+            matchOnDetail: true,
+            placeHolder: localize('selectDebugConfig', 'Select Debug Configuration'),
+            title: localize('selectDebugConfig', 'Select Debug Configuration')
+        }).then(async result => {
+            if (result) {
+                this.debugger = result.type;
+                await this.workspaceContext.state.setDebugger(this.folderName, this.debugger, this.isMultiProjectFolder);
+            }
+        });
+    }
+
+    /**
      * Implementation of `cmake.selectLaunchTarget`
      */
     async selectLaunchTarget(name?: string): Promise<string | null> {
@@ -2890,6 +2910,26 @@ export class CMakeProject {
         return env;
     }
 
+    async getTargetLaunchEnvironmentNC(drv: CMakeDriver | null, debugEnv?: { [key: string]: string }): Promise<Environment> {
+        let env: Environment = debugEnv ?? {};
+
+        // Add environment variables from ConfigureEnvironment.
+        const configureEnv = await drv?.getConfigureEnvironment();
+
+        if ((drv?.useCMakePresets ?? false) && (checkConfigureOverridesPresent(this.workspaceContext.config) ?? false)) {
+            log.info(localize('launch.with.overrides', `NOTE: You are launching a target and there are some environment overrides being applied from your VS Code settings.`));
+        }
+
+        env = EnvironmentUtils.merge([configureEnv, env]);
+        if (debugEnv) {
+            const options = {... await this.getExpansionOptions(), envOverride: env, penvOverride: configureEnv };
+            for (const envKey in debugEnv) {
+                env[envKey] = await expandString(debugEnv[envKey], options);
+            }
+        }
+        return env;
+    }
+
     async cacheVariable(name?: string, defaultValue?: string): Promise<string | null> {
         if (await this.needsReconfigure()) {
             await this.configureInternal(ConfigureTrigger.api, [], ConfigureType.Normal);
@@ -2935,10 +2975,21 @@ export class CMakeProject {
             return null;
         }
 
+        const debuggerExtId = debuggerModule.getDebuggerExtId(this.debugger);
+        const debuggerExtExists = vscode.extensions.getExtension(debuggerExtId);
+        if (!debuggerExtExists) {
+            await vscode.window.showErrorMessage(`Debugger extension ${debuggerExtId} not found.`, 'Install Extension')
+                .then(async item => {
+                    if (item === 'Install Extension') {
+                        await vscode.commands.executeCommand('workbench.extensions.installExtension', debuggerExtId);
+                    }
+                });
+        }
+
         let debugConfig;
         try {
             const cache = await CMakeCache.fromPath(drv.cachePath);
-            debugConfig = await debuggerModule.getDebugConfigurationFromCache(cache, targetExecutable, process.platform,
+            debugConfig = await debuggerModule.getDebugConfigurationFromCacheK(cache, targetExecutable, process.platform, this.debugger,
                 this.workspaceContext.config.debugConfig?.MIMode,
                 this.workspaceContext.config.debugConfig?.miDebuggerPath);
             log.debug(localize('debug.configuration.from.cache', 'Debug configuration from cache: {0}', JSON.stringify(debugConfig)));
@@ -2964,30 +3015,30 @@ export class CMakeProject {
         }
 
         // Add debug configuration from settings.
-        const userConfig = this.workspaceContext.config.debugConfig;
-        Object.assign(debugConfig, userConfig);
+        if (this.debugger === debuggerModule.DebuggerType.cppdbg) {
+            const userConfig = this.workspaceContext.config.debugConfig;
+            Object.assign(debugConfig, userConfig);
 
-        const launchEnv = await this.getTargetLaunchEnvironment(drv, debugConfig.environment);
-        debugConfig.environment = util.makeDebuggerEnvironmentVars(launchEnv);
+            const launchEnv = await this.getTargetLaunchEnvironment(drv, debugConfig.environment);
+            debugConfig.environment = util.makeDebuggerEnvironmentVars(launchEnv);
+        } else {
+            let userConfig: debuggerModule.CodeLLDBDebugConfiguration | debuggerModule.NativeDebugConfiguration;
+            if (this.debugger === debuggerModule.DebuggerType.lldb) {
+                userConfig = this.workspaceContext.config.codeLLDBDebugConfig;
+            } else if (this.debugger === debuggerModule.DebuggerType.gdb) {
+                userConfig = this.workspaceContext.config.nativeDebugConfig;
+            } else {
+                throw new Error(`unKnown debugger type: ${JSON.stringify(this.debugger)}`);
+            }
+
+            Object.assign(debugConfig, userConfig);
+            debugConfig.env = await this.getTargetLaunchEnvironmentNC(drv, debugConfig.env);
+        }
+
         log.debug(localize('starting.debugger.with', 'Starting debugger with following configuration.'), JSON.stringify({
             workspace: this.workspaceFolder.uri.toString(),
             config: debugConfig
         }));
-
-        const cfg = vscode.workspace.getConfiguration('cmake', this.workspaceFolder.uri).inspect<object>('debugConfig');
-        const customSetting = (cfg?.globalValue !== undefined || cfg?.workspaceValue !== undefined || cfg?.workspaceFolderValue !== undefined);
-        let dbg = debugConfig.MIMode?.toString();
-        if (!dbg && debugConfig.type === "cppvsdbg") {
-            dbg = "vsdbg";
-        } else {
-            dbg = "(unset)";
-        }
-        const telemetryProperties: telemetry.Properties = {
-            customSetting: customSetting.toString(),
-            debugger: dbg
-        };
-
-        telemetry.logEvent('debug', telemetryProperties);
 
         await vscode.debug.startDebugging(this.workspaceFolder, debugConfig);
         return vscode.debug.activeDebugSession!;
@@ -3006,9 +3057,22 @@ export class CMakeProject {
 
     private async createTerminal(executable: ExecutableTarget): Promise<vscode.Terminal> {
         // Create terminal options
-        const userConfig = this.workspaceContext.config.debugConfig;
         const drv = await this.getCMakeDriverInstance();
-        const launchEnv = await this.getTargetLaunchEnvironment(drv, userConfig.environment);
+        let userConfig;
+        let launchEnv: Environment;
+        if (this.debugger === debuggerModule.DebuggerType.cppdbg) {
+            userConfig = this.workspaceContext.config.debugConfig;
+            launchEnv = await this.getTargetLaunchEnvironment(drv, userConfig.environment);
+        } else if (this.debugger === debuggerModule.DebuggerType.lldb) {
+            userConfig = this.workspaceContext.config.codeLLDBDebugConfig;
+            launchEnv = await this.getTargetLaunchEnvironmentNC(drv, userConfig.env);
+        } else if (this.debugger === debuggerModule.DebuggerType.gdb) {
+            userConfig = this.workspaceContext.config.nativeDebugConfig;
+            launchEnv = await this.getTargetLaunchEnvironmentNC(drv, userConfig.env);
+        } else {
+            throw new Error(`unKnown debugger type: ${JSON.stringify(this.debugger)}`);
+        }
+
         const options: vscode.TerminalOptions = {
             name: `CMake/Launch - ${executable.name}`,
             env: launchEnv,
