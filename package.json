@@ -1,25 +1,27 @@
 {
-  "name": "cmake-tools",
-  "displayName": "CMake Tools",
-  "description": "Extended CMake support in Visual Studio Code",
-  "version": "1.13.0",
-  "publisher": "ms-vscode",
+  "name": "kylin-cmake-tools",
+  "displayName": "Kylin CMake Workflow",
+  "description": "CMake workflow for VS Code with clangd-first integration and multi-debugger support",
+  "version": "0.3.0",
+  "publisher": "KylinIdeTeam",
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode-cmake-tools"
+    "url": "https://github.com/quanzhuo/vscode-cmake-tools"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/microsoft/vscode-cmake-tools/issues"
+    "url": "https://github.com/quanzhuo/vscode-cmake-tools/issues"
   },
-  "homepage": "https://github.com/microsoft/vscode-cmake-tools",
+  "homepage": "https://github.com/quanzhuo/vscode-cmake-tools",
   "keywords": [
     "cmake",
-    "tools",
     "build",
-    "c++",
-    "native",
-    "syntaxes"
+    "C",
+    "C++",
+    "KylinIdeDev",
+    "KylinIdeDevCYuYan",
+    "KylinIdeDevCPlusPlus",
+    "KylinIdeDevEdit"
   ],
   "engines": {
     "vscode": "^1.88.0"
@@ -29,10 +31,6 @@
     "Debuggers",
     "Programming Languages"
   ],
-  "galleryBanner": {
-    "color": "#13578c",
-    "theme": "dark"
-  },
   "icon": "res/logo.png",
   "activationEvents": [
     "onCommand:cmake.cacheVariable",
@@ -70,7 +68,7 @@
     "onLanguage:cmake-cache"
   ],
   "extensionPack": [
-    "ms-vscode.cpp-devtools"
+    "KylinIdeTeam.cmake-intellisence"
   ],
   "main": "./dist/main",
   "contributes": {

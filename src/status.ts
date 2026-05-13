@@ -7,9 +7,9 @@ nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFo
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
 // Helper functions
-function hasCPPTools(): boolean {
-    return vscode.extensions.getExtension('ms-vscode.cpptools') !== undefined;
-}
+// function hasCPPTools(): boolean {
+//     return vscode.extensions.getExtension('ms-vscode.cpptools') !== undefined;
+// }
 
 // Button class
 abstract class Button {
@@ -401,7 +401,7 @@ class DebugButton extends Button {
     }
 
     protected isVisible(): boolean {
-        return super.isVisible() && hasCPPTools();
+        return super.isVisible();
     }
 }
 
