@@ -65,6 +65,10 @@ const log = logging.createLogger('main');
 const buildLogger = logging.createLogger('build');
 const cmakeLogger = logging.createLogger('cmake');
 
+const codeLLDBExtensionId = 'vadimcn.vscode-lldb';
+const codeLLDBDebugType = 'lldb';
+const debuggingDocumentationUrl = 'https://github.com/quanzhuo/vscode-cmake-tools/blob/main/docs/debug-launch.md#customize-the-debug-adapter';
+
 export enum ConfigureType {
     Normal,
     Clean,
@@ -3324,7 +3328,7 @@ export class CMakeProject {
                 })
                 .then(item => {
                     if (item && item.isLearnMore) {
-                        open('https://vector-of-bool.github.io/docs/vscode-cmake-tools/debugging.html');
+                        open(debuggingDocumentationUrl);
                     }
                 });
             return null;
@@ -3367,7 +3371,7 @@ export class CMakeProject {
                     })
                     .then(item => {
                         if (item && item.isLearnMore) {
-                            open('https://vector-of-bool.github.io/docs/vscode-cmake-tools/debugging.html');
+                            open(debuggingDocumentationUrl);
                         }
                     });
                 log.debug(localize('problem.getting.debug', 'Problem getting debug configuration from cache.'), error);
@@ -3377,6 +3381,10 @@ export class CMakeProject {
             if (debugConfig === null) {
                 log.error(localize('failed.to.generate.debugger.configuration', 'Failed to generate debugger configuration'));
                 void vscode.window.showErrorMessage(localize('unable.to.generate.debugging.configuration', 'Unable to generate a debugging configuration.'));
+                return null;
+            }
+
+            if (await this.handleUnsupportedAutoDebugConfiguration(debugConfig, userConfig)) {
                 return null;
             }
 
@@ -3408,6 +3416,65 @@ export class CMakeProject {
 
         await vscode.debug.startDebugging(this.workspaceFolder, debugConfig);
         return vscode.debug.activeDebugSession!;
+    }
+
+    private async handleUnsupportedAutoDebugConfiguration(debugConfig: debuggerModule.VSCodeDebugConfiguration, userConfig?: debuggerModule.CppDebugConfiguration): Promise<boolean> {
+        if (userConfig?.type || debugConfig.type !== 'cppvsdbg') {
+            return false;
+        }
+
+        const hasCodeLLDB = !!vscode.extensions.getExtension(codeLLDBExtensionId);
+        const installCodeLLDBItem: MessageItem = {
+            title: localize('debug.msvc.install.codelldb', 'Install CodeLLDB')
+        };
+        const useCodeLLDBItem: MessageItem = {
+            title: localize('debug.msvc.use.codelldb', 'Use CodeLLDB In This Workspace')
+        };
+        const openDocsItem: MessageItem = {
+            title: localize('debug.msvc.open.docs', 'Open Debug Settings Docs')
+        };
+
+        const choice = await vscode.window.showWarningMessage(
+            localize(
+                'debug.msvc.unsupported.message',
+                'This build of CMake Tools does not automatically generate cppvsdbg debug configurations. Install CodeLLDB and switch this workspace to it, or configure cmake.debugConfig manually.'
+            ),
+            { modal: false },
+            ...(hasCodeLLDB ? [] : [installCodeLLDBItem]),
+            useCodeLLDBItem,
+            openDocsItem
+        );
+
+        if (choice === installCodeLLDBItem) {
+            await vscode.commands.executeCommand('workbench.extensions.installExtension', codeLLDBExtensionId);
+            return true;
+        }
+
+        if (choice === useCodeLLDBItem) {
+            await this.configureWorkspaceCodeLLDB(userConfig);
+            void vscode.window.showInformationMessage(
+                localize('debug.msvc.codelldb.configured', 'Configured cmake.debugConfig to use CodeLLDB for this workspace.')
+            );
+            return true;
+        }
+
+        if (choice === openDocsItem) {
+            open(debuggingDocumentationUrl);
+            return true;
+        }
+
+        return true;
+    }
+
+    private async configureWorkspaceCodeLLDB(userConfig?: debuggerModule.CppDebugConfiguration): Promise<void> {
+        const debugConfigSetting = vscode.workspace.getConfiguration('cmake', this.workspaceFolder.uri);
+        const nextConfig: debuggerModule.CppDebugConfiguration = {
+            ...(userConfig ?? {}),
+            type: codeLLDBDebugType,
+            request: userConfig?.request ?? 'launch'
+        };
+
+        await debugConfigSetting.update('debugConfig', nextConfig, vscode.ConfigurationTarget.WorkspaceFolder);
     }
 
     private launchTerminals = new Map<number, vscode.Terminal>();

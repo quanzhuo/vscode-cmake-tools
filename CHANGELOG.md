@@ -2,9 +2,13 @@
 
 ## 0.3.0
 
-Features:
+Improvements:
 
-- Add fork-specific compile command support behind `getApi(1000)` without consuming the upstream CMake Tools API v6 version slot
+- 同步上游更新，基于 tag v1.23.52
+- 扩展 CMake Tools API，使 clangd 插件可以从 cmake Tools 插件获取编译命令
+- 去掉内置的 Ninja Generator，现在 clangd 可以直接从 CMake Tools API 中获取编译命令
+- CMake 视图中去掉了选择调试扩展的选项，因为现在 CMake Tools 扩展已经支持通过 `cmake.debugConfig` 来配置自定义的调试扩展
+- 当快速调试命中 MSVC 风格工具链且未配置 `cmake.debugConfig.type` 时，不再默认生成 `cppvsdbg`，而是引导用户安装并切换到 CodeLLDB，或手动配置 `cmake.debugConfig`
 
 ## 0.2.0
 
