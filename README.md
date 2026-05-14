@@ -2,21 +2,17 @@
 
 Kylin CMake Workflow is a community-maintained CMake extension from `KylinIdeTeam` for Visual Studio Code. It is based on the upstream `ms-vscode.cmake-tools` project, but is distributed as a separate extension with its own maintenance scope, packaging choices, and integration targets. It is not affiliated with or endorsed by Microsoft.
 
-This extension is intended for teams that prefer a clangd-first C/C++ workflow and broader debugger support. It is also part of the `KylinIdeTeam.kylin-cpp-pack` extension pack, and installing that extension pack is the recommended setup for the full C/C++ experience. If you install this extension, disable the official `ms-vscode.cmake-tools` extension to avoid command and feature overlap.
+This extension is intended for teams that prefer a clangd-first C/C++ workflow. It is also part of the `KylinIdeTeam.kylin-cpp-pack` extension pack, and installing that extension pack is the recommended setup for the full C/C++ experience. If you install this extension, disable the official `ms-vscode.cmake-tools` extension to avoid command and feature overlap.
 
 ## Major Changes and Enhancements
 
-- Removed coupling with the Microsoft-maintained C/C++ extension
-- Debug functionality in the project status view now supports multiple extensions, currently supported: `C/C++ Debug`, `Kylin Native Debug`, `CodeLLDB`
-- Removed dependency on the `twxs.cmake` extension, now relies on the `CMake IntelliSense` extension
-- Always export the compile database even when using CMake presets
-- Disabled telemetry
-
-## Fork Positioning
-
-- Extension ID: `KylinIdeTeam.kylin-cmake-tools`
-- Marketplace name: `Kylin CMake Workflow`
-- Primary focus: clangd-oriented workflows, bundled toolchain conveniences, and multi-debugger integration
+- No runtime dependency on `ms-vscode.cpptools`
+- CMake and CMakeCache syntax highlighting and language-service settings (`cmake.enableLanguageServices`, `cmake.languageServerOnlyMode`) have been removed from this extension; install the `CMake IntelliSense` extension to get CMake language support
+- On Windows, if a quick-debug launch would normally auto-generate a `cppvsdbg` configuration (MSVC-style toolchain, no `cmake.debugConfig.type` set), the launch is intercepted and a dialog is shown instead, offering to install CodeLLDB, write a CodeLLDB-based `cmake.debugConfig` to the workspace, or open the debug-configuration documentation
+- `CMAKE_EXPORT_COMPILE_COMMANDS` is always appended to the CMake invocation at configure time, including in CMake Presets mode, unless the preset or `cmake.configureArgs` already sets it
+- A fork-private API is exposed at `getApi(1000)` (separate from the upstream versioned slots). It adds `getCompileCommand(uri)` — which resolves a compile command from the CMake code model for any source or header file — and an `onCompileCommandsChanged` event. Project-lookup also falls back to longest-prefix path matching so files outside the immediate source root are handled correctly
+- On Windows, configure presets that specify a Ninja generator but omit `CMAKE_C_COMPILER` / `CMAKE_CXX_COMPILER` now trigger Visual Studio developer-environment probing, the same way presets with an explicit `cl` compiler do
+- Telemetry is disabled
 
 ## Installation
 
