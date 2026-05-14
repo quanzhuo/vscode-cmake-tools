@@ -129,18 +129,6 @@
             "aliases": ["CMake Cache"]
         }
     ],
-    "grammars": [
-        {
-            "language": "cmake",
-            "scopeName": "source.cmake",
-            "path": "./syntaxes/CMake.tmLanguage.json"
-        },
-        {
-            "language": "cmake-cache",
-            "scopeName": "source.cmakecache",
-            "path": "./syntaxes/CMakeCache.tmLanguage.json"
-        }
-    ],
     "commands": [
       {
         "command": "cmake.openCMakePresets",
@@ -4145,18 +4133,6 @@
           "default": false,
           "description": "%cmake-tools.configuration.cmake.removeStaleKitsOnScan.description%",
           "scope": "window"
-        },
-        "cmake.enableLanguageServices": {
-          "type": "boolean",
-          "default": true,
-          "description": "%cmake-tools.configuration.cmake.enableLanguageServices.description%",
-          "scope": "machine"
-        },
-        "cmake.languageServerOnlyMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "%cmake-tools.configuration.cmake.languageServerOnlyMode.description%",
-          "scope": "machine"
         },
         "cmake.preRunCoverageTarget": {
           "type": "string",
