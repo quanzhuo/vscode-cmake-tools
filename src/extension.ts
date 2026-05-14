@@ -64,6 +64,7 @@ const multiProjectModeKey = 'cmake:multiProject';
 export const hideLaunchCommandKey = 'cmake:hideLaunchCommand';
 export const hideDebugCommandKey = 'cmake:hideDebugCommand';
 export const hideBuildCommandKey = 'cmake:hideBuildCommand';
+const forkApiVersion = 1000 as api.Version;
 
 /**
  * Friendly display names for known vendor extensions. Used to show a nicer
@@ -2896,7 +2897,7 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
 
     return { getApi: (version: api.Version) => {
         // Since our API is backwards compatible, we can make our version number match that which was requested.
-        if (version === api.Version.v1 || version === api.Version.v2 || version === api.Version.v3 || version === api.Version.v4 || version === api.Version.v5) {
+        if (version === api.Version.v1 || version === api.Version.v2 || version === api.Version.v3 || version === api.Version.v4 || version === api.Version.v5 || version === forkApiVersion) {
             ext.api.version = version;
         }
         return ext.api;

@@ -1,6 +1,7 @@
 import { CMakeCache } from '@cmt/cache';
 import { CMakeExecutable, getCMakeExecutableInformation } from '@cmt/cmakeExecutable';
 import { CompilationDatabase } from '@cmt/compilationDatabase';
+import { ResolvedCompileCommandInternal, resolveCompileCommand, resolveTranslationUnitCompileCommands } from '@cmt/compileCommands';
 import * as debuggerModule from '@cmt/debug/debugger';
 import collections from '@cmt/diagnostics/collections';
 import * as shlex from '@cmt/shlex';
@@ -3126,6 +3127,14 @@ export class CMakeProject {
             buildType = this.variantManager.activeVariantOptions.buildType || null;
         }
         return buildType;
+    }
+
+    async getCompileCommand(filePath: string): Promise<ResolvedCompileCommandInternal | undefined> {
+        return resolveCompileCommand(this, filePath);
+    }
+
+    async getTranslationUnitCompileCommands(): Promise<ResolvedCompileCommandInternal[]> {
+        return resolveTranslationUnitCompileCommands(this);
     }
 
     /**

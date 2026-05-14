@@ -1,5 +1,11 @@
 # What's New?
 
+## 0.3.0
+
+Features:
+
+- Add fork-specific compile command support behind `getApi(1000)` without consuming the upstream CMake Tools API v6 version slot
+
 ## 0.2.0
 
 Improvements:

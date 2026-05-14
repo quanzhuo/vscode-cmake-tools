@@ -7,7 +7,8 @@ import * as vscode from 'vscode';
 import * as api from 'vscode-cmake-tools';
 import CMakeProject from '@cmt/cmakeProject';
 import { ExtensionManager } from '@cmt/extension';
-import { assertNever } from '@cmt/util';
+import { ResolvedCompileCommandInternal } from '@cmt/compileCommands';
+import { assertNever, platformNormalizePath } from '@cmt/util';
 import { CTestOutputLogger } from '@cmt/ctest';
 import { logEvent } from './telemetry';
 
@@ -40,7 +41,7 @@ export class CMakeToolsApiImpl implements api.CMakeToolsApi {
 
     async getProject(uri: vscode.Uri): Promise<CMakeProjectWrapper | undefined> {
         logApiTelemetry('getProject');
-        const project: CMakeProject | undefined = await this.manager.projectController.getProjectForFolder(uri.fsPath);
+        const project = await this.getProjectForUri(uri);
         return project ? new CMakeProjectWrapper(project) : undefined;
     }
 
@@ -60,6 +61,29 @@ export class CMakeToolsApiImpl implements api.CMakeToolsApi {
             default:
                 assertNever(element);
         }
+    }
+
+    private async getProjectForUri(uri: vscode.Uri): Promise<CMakeProject | undefined> {
+        const byFolder = await this.manager.projectController.getProjectForFolder(uri.fsPath);
+        if (byFolder) {
+            return byFolder;
+        }
+
+        const normalizedPath = platformNormalizePath(uri.fsPath);
+        let bestMatch: CMakeProject | undefined;
+        let bestLength = -1;
+
+        for (const project of this.manager.projectController.getAllCMakeProjects()) {
+            for (const candidate of [project.sourceDir, project.workspaceFolder.uri.fsPath]) {
+                const normalizedCandidate = platformNormalizePath(candidate);
+                if ((normalizedPath === normalizedCandidate || normalizedPath.startsWith(`${normalizedCandidate}/`)) && normalizedCandidate.length > bestLength) {
+                    bestMatch = project;
+                    bestLength = normalizedCandidate.length;
+                }
+            }
+        }
+
+        return bestMatch;
     }
 }
 
@@ -176,6 +200,34 @@ class CMakeProjectWrapper implements api.Project {
         return (await this.project.currentBuildType()) ?? undefined;
     }
 
+    get onCompileCommandsChanged(): vscode.Event<api.CompileCommandsChangeEvent> {
+        return (listener, thisArgs, disposables) => {
+            const fire = () => listener.call(thisArgs, { kind: 'full' });
+            const subscriptions = [
+                this.project.onCodeModelChangedApiEvent(fire),
+                this.project.onSelectedConfigurationChangedApiEvent(fire),
+                this.project.onReconfigured(fire),
+                this.project.onTargetChanged(fire)
+            ];
+            const subscription = new vscode.Disposable(() => subscriptions.forEach(item => item.dispose()));
+            if (disposables) {
+                disposables.push(subscription);
+            }
+            return subscription;
+        };
+    }
+
+    async getCompileCommand(file: vscode.Uri): Promise<api.ResolvedCompileCommand | undefined> {
+        logApiTelemetry('getCompileCommand');
+        const command = await this.project.getCompileCommand(file.fsPath);
+        return command ? mapResolvedCompileCommand(command) : undefined;
+    }
+
+    async getTranslationUnitCompileCommands(): Promise<api.ResolvedCompileCommand[]> {
+        logApiTelemetry('getTranslationUnitCompileCommands');
+        return (await this.project.getTranslationUnitCompileCommands()).map(command => mapResolvedCompileCommand(command));
+    }
+
     async listBuildTargets(): Promise<string[] | undefined> {
         logApiTelemetry('listBuildTargets');
         return (await this.project.targets).map(target => target.name);
@@ -185,6 +237,20 @@ class CMakeProjectWrapper implements api.Project {
         logApiTelemetry('listTests');
         return this.project.cTestController.getTestNames();
     }
+}
+
+function mapResolvedCompileCommand(command: ResolvedCompileCommandInternal): api.ResolvedCompileCommand {
+    return {
+        uri: vscode.Uri.file(command.file),
+        sourceUri: vscode.Uri.file(command.sourceFile),
+        workingDirectory: command.workingDirectory,
+        compilationCommand: [...command.compilationCommand],
+        compilerPath: command.compilerPath,
+        targetName: command.targetName,
+        configurationName: command.configurationName,
+        language: command.language,
+        inferred: command.inferred
+    };
 }
 
 function logApiTelemetry(method: string): void {
