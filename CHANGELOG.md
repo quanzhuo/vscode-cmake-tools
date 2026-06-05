@@ -1,5 +1,11 @@
 # What's New?
 
+## 0.3.1
+
+Bug Fixes
+
+- 修复 [Issue 4951](https://github.com/microsoft/vscode-cmake-tools/issues/4951)： cmake tools api 报告 sourceDirectory 不是文件夹的问题，
+
 ## 0.3.0
 
 Improvements:
