@@ -8,7 +8,7 @@ import * as api from 'vscode-cmake-tools';
 import CMakeProject from '@cmt/cmakeProject';
 import { ExtensionManager } from '@cmt/extension';
 import { ResolvedCompileCommandInternal } from '@cmt/compileCommands';
-import { assertNever, platformNormalizePath } from '@cmt/util';
+import { assertNever, checkDirectoryExists, platformNormalizePath } from '@cmt/util';
 import { CTestOutputLogger } from '@cmt/ctest';
 import { logEvent } from './telemetry';
 
@@ -64,9 +64,14 @@ export class CMakeToolsApiImpl implements api.CMakeToolsApi {
     }
 
     private async getProjectForUri(uri: vscode.Uri): Promise<CMakeProject | undefined> {
-        const byFolder = await this.manager.projectController.getProjectForFolder(uri.fsPath);
-        if (byFolder) {
-            return byFolder;
+        // The public API accepts either a file or a folder URI. Only resolve by
+        // folder when the incoming path is actually a directory to avoid logging
+        // spurious sourceDirectory validation errors for source files.
+        if (await checkDirectoryExists(uri.fsPath)) {
+            const byFolder = await this.manager.projectController.getProjectForFolder(uri.fsPath);
+            if (byFolder) {
+                return byFolder;
+            }
         }
 
         const normalizedPath = platformNormalizePath(uri.fsPath);
