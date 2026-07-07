@@ -22,9 +22,17 @@ declare module 'vscode-cmake-tools' {
         inferred: boolean;
     }
 
+    export interface CompilationDatabaseInfo {
+        state: 'available' | 'unavailable' | 'unknown';
+        path?: string;
+        generator?: string;
+        reason?: string;
+    }
+
     export interface Project {
         readonly onCompileCommandsChanged: vscode.Event<CompileCommandsChangeEvent>;
         getCompileCommand(file: vscode.Uri): Promise<ResolvedCompileCommand | undefined>;
         getTranslationUnitCompileCommands(): Promise<ResolvedCompileCommand[]>;
+        getCompilationDatabaseInfo(): Promise<CompilationDatabaseInfo>;
     }
 }

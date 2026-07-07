@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import * as api from 'vscode-cmake-tools';
 import CMakeProject from '@cmt/cmakeProject';
 import { ExtensionManager } from '@cmt/extension';
-import { ResolvedCompileCommandInternal } from '@cmt/compileCommands';
+import { CompilationDatabaseInfoInternal, ResolvedCompileCommandInternal } from '@cmt/compileCommands';
 import { assertNever, checkDirectoryExists, platformNormalizePath } from '@cmt/util';
 import { CTestOutputLogger } from '@cmt/ctest';
 import { logEvent } from './telemetry';
@@ -15,7 +15,7 @@ import { logEvent } from './telemetry';
 export class CMakeToolsApiImpl implements api.CMakeToolsApi {
     constructor(private readonly manager: ExtensionManager) {}
 
-    version: api.Version = api.Version.v5;
+    version: api.Version = 1000 as api.Version;
 
     showUIElement(element: api.UIElement): Promise<void> {
         logApiTelemetry('showUIElement');
@@ -233,6 +233,11 @@ class CMakeProjectWrapper implements api.Project {
         return (await this.project.getTranslationUnitCompileCommands()).map(command => mapResolvedCompileCommand(command));
     }
 
+    async getCompilationDatabaseInfo(): Promise<api.CompilationDatabaseInfo> {
+        logApiTelemetry('getCompilationDatabaseInfo');
+        return mapCompilationDatabaseInfo(await this.project.getCompilationDatabaseInfo());
+    }
+
     async listBuildTargets(): Promise<string[] | undefined> {
         logApiTelemetry('listBuildTargets');
         return (await this.project.targets).map(target => target.name);
@@ -256,6 +261,10 @@ function mapResolvedCompileCommand(command: ResolvedCompileCommandInternal): api
         language: command.language,
         inferred: command.inferred
     };
+}
+
+function mapCompilationDatabaseInfo(info: CompilationDatabaseInfoInternal): api.CompilationDatabaseInfo {
+    return { ...info };
 }
 
 function logApiTelemetry(method: string): void {

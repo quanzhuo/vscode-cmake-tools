@@ -1,8 +1,8 @@
 # Kylin CMake Workflow
 
-Kylin CMake Workflow is a community-maintained CMake extension from `KylinIdeTeam` for Visual Studio Code. It is based on the upstream `ms-vscode.cmake-tools` project, but is distributed as a separate extension with its own maintenance scope, packaging choices, and integration targets. It is not affiliated with or endorsed by Microsoft.
+Kylin CMake Workflow is based on the upstream [vscode-cmake-tools](https://github.com/microsoft/vscode-cmake-tools) project, but is distributed with its own maintenance scope, packaging choices, and integration targets. It is **not** affiliated with or endorsed by Microsoft.
 
-This extension is intended for teams that prefer a clangd-first C/C++ workflow. It is also part of the `KylinIdeTeam.kylin-cpp-pack` extension pack, and installing that extension pack is the recommended setup for the full C/C++ experience. If you install this extension, disable the official `ms-vscode.cmake-tools` extension to avoid command and feature overlap.
+This extension is intended for teams that prefer a clangd-first C/C++ workflow. It is also part of the `KylinIdeTeam.kylin-cpp-pack` extension pack, and installing that extension pack is the recommended setup for the full C/C++ experience. If you install this extension, disable the `ms-vscode.cmake-tools` extension to avoid feature overlap.
 
 ## Major Changes and Enhancements
 

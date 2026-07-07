@@ -1,7 +1,7 @@
 import { CMakeCache } from '@cmt/cache';
 import { CMakeExecutable, getCMakeExecutableInformation } from '@cmt/cmakeExecutable';
 import { CompilationDatabase } from '@cmt/compilationDatabase';
-import { ResolvedCompileCommandInternal, resolveCompileCommand, resolveTranslationUnitCompileCommands } from '@cmt/compileCommands';
+import { CompilationDatabaseInfoInternal, ResolvedCompileCommandInternal, resolveCompilationDatabaseInfo, resolveCompileCommand, resolveTranslationUnitCompileCommands } from '@cmt/compileCommands';
 import * as debuggerModule from '@cmt/debug/debugger';
 import collections from '@cmt/diagnostics/collections';
 import * as shlex from '@cmt/shlex';
@@ -3139,6 +3139,10 @@ export class CMakeProject {
 
     async getTranslationUnitCompileCommands(): Promise<ResolvedCompileCommandInternal[]> {
         return resolveTranslationUnitCompileCommands(this);
+    }
+
+    async getCompilationDatabaseInfo(): Promise<CompilationDatabaseInfoInternal> {
+        return resolveCompilationDatabaseInfo(this);
     }
 
     /**

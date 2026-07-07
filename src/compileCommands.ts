@@ -52,6 +52,26 @@ export interface ResolvedCompileCommandInternal {
     inferred: boolean;
 }
 
+export interface CompilationDatabaseInfoInternal {
+    state: 'available' | 'unavailable' | 'unknown';
+    path?: string;
+    generator?: string;
+    reason?: string;
+}
+
+// CMake emits compile_commands.json only for Makefile and Ninja generators.
+const compileCommandsGenerators = new Set([
+    'Borland Makefiles',
+    'MSYS Makefiles',
+    'MinGW Makefiles',
+    'NMake Makefiles',
+    'NMake Makefiles JOM',
+    'Unix Makefiles',
+    'Watcom WMake',
+    'Ninja',
+    'Ninja Multi-Config'
+]);
+
 function normalizeLanguage(language?: string): SupportedLanguage | undefined {
     switch (language) {
         case 'C':
@@ -168,6 +188,24 @@ function ensureSourceFileArg(args: string[], filePath: string): void {
     const hasSourceArg = args.some(arg => util.platformNormalizePath(arg) === normalizedFilePath);
     if (!hasSourceArg) {
         args.push(filePath);
+    }
+}
+
+function isTruthyCMakeValue(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    return typeof value === 'string' && util.isTruthy(value);
+}
+
+async function isValidCompilationDatabase(filePath: string): Promise<boolean> {
+    try {
+        // Stale or empty files should not suppress LSP-provided commands.
+        const content = await fs.readFile(filePath, 'utf8');
+        const commands = JSON.parse(content);
+        return Array.isArray(commands) && commands.length > 0;
+    } catch {
+        return false;
     }
 }
 
@@ -544,4 +582,68 @@ export async function resolveTranslationUnitCompileCommands(project: CMakeProjec
     }
 
     return [...deduplicatedCommands.values()];
+}
+
+export async function resolveCompilationDatabaseInfo(project: CMakeProject): Promise<CompilationDatabaseInfoInternal> {
+    let cache: CMakeCache;
+    try {
+        cache = await CMakeCache.fromPath(await project.cachePath);
+    } catch (error) {
+        return {
+            state: 'unknown',
+            reason: `Failed to read CMake cache: ${util.errorToString(error)}`
+        };
+    }
+
+    const buildDirectory = await project.buildDirectory() || await project.binaryDir;
+    if (!buildDirectory) {
+        return {
+            state: 'unknown',
+            reason: 'Build directory is not available'
+        };
+    }
+
+    const generator = cache.get('CMAKE_GENERATOR')?.as<string>();
+    if (!generator) {
+        return {
+            state: 'unknown',
+            path: path.join(buildDirectory, 'compile_commands.json'),
+            reason: 'CMAKE_GENERATOR is not available in the cache'
+        };
+    }
+
+    const cdbPath = path.join(buildDirectory, 'compile_commands.json');
+    if (!compileCommandsGenerators.has(generator)) {
+        return {
+            state: 'unavailable',
+            path: cdbPath,
+            generator,
+            reason: `${generator} does not generate compile_commands.json`
+        };
+    }
+
+    const exportEntry = cache.get('CMAKE_EXPORT_COMPILE_COMMANDS');
+    if (!isTruthyCMakeValue(exportEntry?.value)) {
+        return {
+            state: 'unavailable',
+            path: cdbPath,
+            generator,
+            reason: 'CMAKE_EXPORT_COMPILE_COMMANDS is not enabled'
+        };
+    }
+
+    if (!await isValidCompilationDatabase(cdbPath)) {
+        return {
+            state: 'unavailable',
+            path: cdbPath,
+            generator,
+            reason: 'compile_commands.json is missing or invalid'
+        };
+    }
+
+    return {
+        state: 'available',
+        path: cdbPath,
+        generator
+    };
 }
