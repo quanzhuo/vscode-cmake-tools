@@ -556,12 +556,7 @@ export async function resolveCompileCommand(project: CMakeProject, filePath: str
     return {
         ...fallbackCommand,
         file: util.lightNormalizePath(filePath),
-        inferred: true,
-        compilationCommand: [...fallbackCommand.compilationCommand.filter(arg => {
-            const normalizedArg = util.platformNormalizePath(arg);
-            return normalizedArg !== util.platformNormalizePath(fallbackCommand.sourceFile)
-                && normalizedArg !== fallbackCommand.commandSourceFile;
-        })]
+        inferred: true
     };
 }
 
