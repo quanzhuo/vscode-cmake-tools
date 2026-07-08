@@ -39,6 +39,18 @@ interface FallbackCommandCandidate extends ResolvedCompileCommandInternal {
     sourceDirectory?: string;
 }
 
+interface CollectedCompileCommands {
+    exactCommands: Map<string, Map<string, ResolvedCompileCommandInternal>>;
+    fallbackCommands: FallbackCommandCandidate[];
+    activeTarget: string | null;
+}
+
+interface CachedCMakeCache {
+    mtimeMs: number;
+    size: number;
+    cache: Promise<CMakeCache>;
+}
+
 export interface ResolvedCompileCommandInternal {
     file: string;
     sourceFile: string;
@@ -71,6 +83,8 @@ const compileCommandsGenerators = new Set([
     'Ninja',
     'Ninja Multi-Config'
 ]);
+
+const cmakeCacheByPath = new Map<string, CachedCMakeCache>();
 
 function normalizeLanguage(language?: string): SupportedLanguage | undefined {
     switch (language) {
@@ -318,8 +332,9 @@ async function loadContext(project: CMakeProject): Promise<CompileCommandContext
     }
 
     let cache: CMakeCache;
+    const cachePath = await project.cachePath;
     try {
-        cache = await CMakeCache.fromPath(await project.cachePath);
+        cache = await readCMakeCache(cachePath);
     } catch (error) {
         log.warning(localize('failed.to.load.cmake.cache', 'Failed to load CMake cache while resolving compile commands: {0}', util.errorToString(error)));
         return null;
@@ -339,6 +354,34 @@ async function loadContext(project: CMakeProject): Promise<CompileCommandContext
     };
 }
 
+async function readCMakeCache(cachePath: string): Promise<CMakeCache> {
+    const normalizedCachePath = util.platformNormalizePath(cachePath);
+
+    try {
+        const stats = await fs.stat(cachePath);
+        const cached = cmakeCacheByPath.get(normalizedCachePath);
+        if (cached && cached.mtimeMs === stats.mtimeMs && cached.size === stats.size) {
+            return cached.cache;
+        }
+
+        const cache = CMakeCache.fromPath(cachePath);
+        cmakeCacheByPath.set(normalizedCachePath, {
+            mtimeMs: stats.mtimeMs,
+            size: stats.size,
+            cache
+        });
+        return await cache;
+    } catch (error: any) {
+        if (error?.code !== 'ENOENT') {
+            cmakeCacheByPath.delete(normalizedCachePath);
+            throw error;
+        }
+
+        cmakeCacheByPath.delete(normalizedCachePath);
+        return CMakeCache.fromPath(cachePath);
+    }
+}
+
 function getActiveConfiguration(codeModelContent: CodeModelContent, activeBuildTypeVariant: string | null): CodeModelConfiguration | undefined {
     if (codeModelContent.configurations.length === 0) {
         return undefined;
@@ -351,6 +394,13 @@ function getActiveConfiguration(codeModelContent: CodeModelContent, activeBuildT
 
     return codeModelContent.configurations.find(configuration => configuration.name === effectiveBuildType)
         || codeModelContent.configurations[0];
+}
+
+function isCompileCommandTarget(target: CodeModelTarget): boolean {
+    // Generator/utility targets such as ZERO_CHECK do not represent real C/C++ compilations.
+    return !target.isGeneratorProvided
+        && target.type !== 'UTILITY'
+        && target.type !== 'INTERFACE_LIBRARY';
 }
 
 function buildResolvedCompileCommand(
@@ -432,7 +482,64 @@ function chooseBestFallback(filePath: string, candidates: FallbackCommandCandida
     return bestCandidate || candidates[0];
 }
 
-async function collectCommands(project: CMakeProject) {
+function getPreferredCommand(commandsByTarget: Map<string, ResolvedCompileCommandInternal>, activeTarget: string | null): ResolvedCompileCommandInternal | undefined {
+    return activeTarget && commandsByTarget.has(activeTarget)
+        ? commandsByTarget.get(activeTarget)
+        : commandsByTarget.values().next().value as ResolvedCompileCommandInternal | undefined;
+}
+
+function getFileStem(filePath: string): string {
+    return path.basename(filePath, path.extname(filePath)).toLocaleLowerCase();
+}
+
+function getDirectorySegments(filePath: string): string[] {
+    return path.dirname(util.platformNormalizePath(filePath))
+        .split(/[\\/]+/)
+        .filter(segment => segment.length > 0)
+        .map(segment => segment.toLocaleLowerCase());
+}
+
+function commonDirectorySuffixLength(leftPath: string, rightPath: string): number {
+    const left = getDirectorySegments(leftPath);
+    const right = getDirectorySegments(rightPath);
+    let count = 0;
+    while (count < left.length && count < right.length
+        && left[left.length - 1 - count] === right[right.length - 1 - count]) {
+        count++;
+    }
+    return count;
+}
+
+function chooseBestMatchingSourceCommand(
+    filePath: string,
+    exactCommands: Map<string, Map<string, ResolvedCompileCommandInternal>>,
+    activeTarget: string | null
+): ResolvedCompileCommandInternal | undefined {
+    const requestedStem = getFileStem(filePath);
+    let bestCommand: ResolvedCompileCommandInternal | undefined;
+    let bestScore = -1;
+
+    for (const [sourcePath, commandsByTarget] of exactCommands) {
+        if (getFileStem(sourcePath) !== requestedStem) {
+            continue;
+        }
+
+        const command = getPreferredCommand(commandsByTarget, activeTarget);
+        if (!command) {
+            continue;
+        }
+
+        const score = commonDirectorySuffixLength(filePath, sourcePath);
+        if (score > bestScore) {
+            bestCommand = command;
+            bestScore = score;
+        }
+    }
+
+    return bestCommand;
+}
+
+async function collectCommands(project: CMakeProject): Promise<CollectedCompileCommands | null> {
     const context = await loadContext(project);
     if (!context) {
         return null;
@@ -443,6 +550,9 @@ async function collectCommands(project: CMakeProject) {
         return null;
     }
 
+    // Match CppConfigurationProvider's primary lookup model: every file that
+    // appears in CMake's file groups is indexed exactly by path and target.
+    // Header inference below is only for files CMake did not put in a group.
     const exactCommands = new Map<string, Map<string, ResolvedCompileCommandInternal>>();
     const fallbackCommands: FallbackCommandCandidate[] = [];
     const displayPathCache = new Map<string, string>();
@@ -450,6 +560,10 @@ async function collectCommands(project: CMakeProject) {
 
     for (const projectEntry of configuration.projects) {
         for (const target of projectEntry.targets) {
+            if (!isCompileCommandTarget(target)) {
+                continue;
+            }
+
             const reversedGroups = (target.fileGroups || []).slice().reverse();
             const targetDefaults = createTargetDefaults(target, reversedGroups);
             const sourceBaseDirectory = target.sourceDirectory
@@ -533,9 +647,7 @@ export async function resolveCompileCommand(project: CMakeProject, filePath: str
     const normalizedFilePath = util.platformNormalizePath(filePath);
     const exactCommandCandidates = commands.exactCommands.get(normalizedFilePath);
     if (exactCommandCandidates && exactCommandCandidates.size > 0) {
-        const exactCommand = commands.activeTarget && exactCommandCandidates.has(commands.activeTarget)
-            ? exactCommandCandidates.get(commands.activeTarget)
-            : exactCommandCandidates.values().next().value as ResolvedCompileCommandInternal | undefined;
+        const exactCommand = getPreferredCommand(exactCommandCandidates, commands.activeTarget);
         if (!exactCommand) {
             return undefined;
         }
@@ -545,6 +657,18 @@ export async function resolveCompileCommand(project: CMakeProject, filePath: str
             ...exactCommand,
             file: resolvedFilePath,
             sourceFile: resolvedFilePath
+        };
+    }
+
+    // CppTools stops when a header is absent from CMake's file groups. clangd
+    // still needs a command, so prefer a nearby same-name source before falling
+    // back to a target-wide representative source.
+    const matchingSourceCommand = chooseBestMatchingSourceCommand(normalizedFilePath, commands.exactCommands, commands.activeTarget);
+    if (matchingSourceCommand) {
+        return {
+            ...matchingSourceCommand,
+            file: util.lightNormalizePath(filePath),
+            inferred: true
         };
     }
 
@@ -581,8 +705,9 @@ export async function resolveTranslationUnitCompileCommands(project: CMakeProjec
 
 export async function resolveCompilationDatabaseInfo(project: CMakeProject): Promise<CompilationDatabaseInfoInternal> {
     let cache: CMakeCache;
+    const cachePath = await project.cachePath;
     try {
-        cache = await CMakeCache.fromPath(await project.cachePath);
+        cache = await readCMakeCache(cachePath);
     } catch (error) {
         return {
             state: 'unknown',
