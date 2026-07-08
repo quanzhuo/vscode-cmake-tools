@@ -1,5 +1,12 @@
 # What's New?
 
+## 0.4.1
+
+Bug Fixes
+
+- 修复为 .h 文件生成的编译命令错误的问题
+- 缓存 CMakeCache.txt 避免每次解析
+
 ## 0.4.0
 
 Bug Fixes
