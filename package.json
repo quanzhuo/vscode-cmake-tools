@@ -1,8 +1,8 @@
 {
   "name": "kylin-cmake-tools",
   "displayName": "Kylin CMake Workflow",
-  "description": "CMake workflow for VS Code with clangd-first integration and multi-debugger support",
-  "version": "0.4.1",
+  "description": "CMake workflow for VS Code with clangd-first integration",
+  "version": "0.4.2",
   "publisher": "KylinIdeTeam",
   "repository": {
     "type": "git",

@@ -1,5 +1,11 @@
 # What's New?
 
+## 0.4.2
+
+Bug Fixes
+
+- Fix the CMake Cache Editor dropdown for `STRINGS` cache variables so opening the dropdown shows all declared choices instead of filtering them by the current value. [#5022](https://github.com/microsoft/vscode-cmake-tools/issues/5022)
+
 ## 0.4.1
 
 Bug Fixes
