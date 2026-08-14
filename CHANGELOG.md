@@ -5,6 +5,7 @@
 Bug Fixes
 
 - Fix the CMake Cache Editor dropdown for `STRINGS` cache variables so opening the dropdown shows all declared choices instead of filtering them by the current value. [#5022](https://github.com/microsoft/vscode-cmake-tools/issues/5022)
+- 修复 macOS 快速调试未发现 `KylinIdeTeam.cppdebug` 内置的 `lldb-mi`，错误回退到普通 `lldb` 的问题
 
 ## 0.4.1
 
