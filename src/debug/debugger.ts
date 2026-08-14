@@ -12,6 +12,32 @@ const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
 const log = createLogger('debugger');
 
+const bundledLLDBMICandidates = [
+    {
+        extensionId: 'kylinideteam.cppdebug',
+        relativePath: ['dist', 'debugAdapter', 'lldb-mi', 'bin', 'lldb-mi']
+    },
+    {
+        extensionId: 'ms-vscode.cpptools',
+        relativePath: ['debugAdapters', 'lldb-mi', 'bin', 'lldb-mi']
+    }
+];
+
+async function findBundledLLDBMI(): Promise<string | undefined> {
+    for (const candidate of bundledLLDBMICandidates) {
+        const extension = vscode.extensions.getExtension(candidate.extensionId);
+        if (!extension) {
+            continue;
+        }
+
+        const debuggerPath = path.join(extension.extensionPath, ...candidate.relativePath);
+        if (await checkDebugger(debuggerPath)) {
+            return debuggerPath;
+        }
+    }
+    return undefined;
+}
+
 /**
  * Basically the same interface as vscode.DebugConfiguration, but we want
  * strong typing on the optional properties so we need to redefine it so
@@ -250,12 +276,14 @@ export async function getDebugConfigurationFromCache(cache: CMakeCache, target: 
                 return createLLDBDebugConfiguration(miDebuggerPath, target);
             }
         }
-        if (modeOverride === MIModes.lldb || lldbMIReplaced) {
-            // 1b. lldb-mi installed by CppTools
-            const cppToolsExtension = vscode.extensions.getExtension('ms-vscode.cpptools');
-            const cpptoolsDebuggerPath = cppToolsExtension ? path.join(cppToolsExtension.extensionPath, "debugAdapters", "lldb-mi", "bin", "lldb-mi") : undefined;
-            if (cpptoolsDebuggerPath && await checkDebugger(cpptoolsDebuggerPath)) {
-                return createLLDBDebugConfiguration(cpptoolsDebuggerPath, target);
+
+        if (debuggerName === MIModes.lldb || lldbMIReplaced) {
+            // 1b. lldb-mi bundled by a supported C/C++ debug extension. Search
+            // independently of the compiler name because Apple Clang may be
+            // recorded in the CMake cache as /usr/bin/cc or /usr/bin/c++.
+            const bundledLLDBMIPath = await findBundledLLDBMI();
+            if (bundledLLDBMIPath) {
+                return createLLDBDebugConfiguration(bundledLLDBMIPath, target);
             }
         }
     }

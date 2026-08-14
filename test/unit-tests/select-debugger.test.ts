@@ -54,13 +54,18 @@ suite('Select debugger', () => {
         expect(config.type).to.be.eq('cppdbg');
         expect(stub.called).to.be.true;
 
-        // If CppTools extension is installed, the lldb-mi installed with that extension
+        // If a supported C/C++ debug extension is installed, its bundled lldb-mi
         // will represent the debugger fallback instead of gdb.
+        const cppdebugExtension = vscode.extensions.getExtension('kylinideteam.cppdebug');
         const cpptoolsExtension = vscode.extensions.getExtension('ms-vscode.cpptools');
-        const cpptoolsDebuggerPath = cpptoolsExtension ? path.join(cpptoolsExtension.extensionPath, "debugAdapters", "lldb-mi", "bin", "lldb-mi") : undefined;
-        if (cpptoolsDebuggerPath) {
+        const bundledDebuggerPath = cppdebugExtension
+            ? path.join(cppdebugExtension.extensionPath, 'dist', 'debugAdapter', 'lldb-mi', 'bin', 'lldb-mi')
+            : cpptoolsExtension
+                ? path.join(cpptoolsExtension.extensionPath, 'debugAdapters', 'lldb-mi', 'bin', 'lldb-mi')
+                : undefined;
+        if (bundledDebuggerPath) {
             expect(config['MIMode']).to.be.eq('lldb');
-            expect(config['miDebuggerPath']).to.be.eq(cpptoolsDebuggerPath);
+            expect(config['miDebuggerPath']).to.be.eq(bundledDebuggerPath);
             expect(stub.calledWith('gdb')).to.be.false;
         } else {
             expect(config['MIMode']).to.be.eq('gdb');
@@ -137,6 +142,28 @@ suite('Select debugger', () => {
         expect(config.type).to.be.eq('cppdbg');
         expect(config['miDebuggerPath']).to.be.eq('lldb');
         expect(stub.calledWith('lldb')).to.be.true;
+    });
+
+    test('Create debug config from cache - uses lldb-mi bundled by Kylin cppdebug', async () => {
+        const debuggerPath = path.join('/extensions', 'kylinideteam.cppdebug', 'dist', 'debugAdapter', 'lldb-mi', 'bin', 'lldb-mi');
+        const executeStub = sandbox.stub(proc, 'execute');
+        executeStub.withArgs(debuggerPath).returns(createExecuteReturn(0));
+        executeStub.returns(createExecuteReturn(-1));
+
+        const extensionStub = sandbox.stub(vscode.extensions, 'getExtension');
+        extensionStub.withArgs('kylinideteam.cppdebug').returns({
+            extensionPath: path.join('/extensions', 'kylinideteam.cppdebug')
+        } as vscode.Extension<unknown>);
+        extensionStub.returns(undefined);
+
+        const target = { name: 'Test', path: 'Target' };
+        const cache = await CMakeCache.fromPath(getTestResourceFilePath('TestCMakeCache-gcc.txt'));
+        const config = await Debugger.getDebugConfigurationFromCache(cache, target, 'darwin');
+
+        expect(config).to.not.be.null;
+        expect(config?.['MIMode']).to.be.eq('lldb');
+        expect(config?.['miDebuggerPath']).to.be.eq(debuggerPath);
+        expect(executeStub.calledWith('lldb')).to.be.false;
     });
 
     test('Create debug config from cache - g++', async () => {
